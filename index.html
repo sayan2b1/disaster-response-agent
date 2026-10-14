@@ -465,6 +465,21 @@
             <p id="threat-description" class="text-sm text-slate-300 leading-relaxed font-sans">
               Severe Waterlogging & Inundation Risk across regional catchments.
             </p>
+            <!-- Inherent Geographical Vulnerability vs Real-Time Weather Context Note -->
+            <div id="threat-context-note" class="hidden mt-3 p-3 rounded-xl bg-slate-900/90 border border-slate-700/70 text-xs font-mono space-y-1.5 transition-all">
+              <div class="flex items-center justify-between">
+                <span class="flex items-center gap-1.5 font-bold text-cyan-300 text-[11px]">
+                  <span>ℹ️</span>
+                  <span>TELEMETRY & HAZARD CONTEXT</span>
+                </span>
+                <span id="threat-context-tag" class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-cyan-300 font-semibold border border-slate-700">
+                  LIVE SENSORS
+                </span>
+              </div>
+              <p id="threat-context-text" class="text-[11px] leading-relaxed text-slate-300">
+                <!-- Dynamically populated -->
+              </p>
+            </div>
           </div>
         </div>
 
@@ -2047,6 +2062,7 @@
       }
 
       return {
+        regionKey: regionKey,
         region: region.name,
         district: region.district,
         zone: region.zone,
@@ -2219,6 +2235,38 @@
       threatBar.style.width = `${report.hazard_index}%`;
       threatIndex.textContent = `${report.hazard_index} / 100`;
 
+      // Telemetry & Inherent Hazard Context Explainer
+      const scenarioSelect = document.getElementById('simulation-scenario');
+      const activeScenario = scenarioSelect ? scenarioSelect.value : 'live';
+      const contextNote = document.getElementById('threat-context-note');
+      const contextText = document.getElementById('threat-context-text');
+      const contextTag = document.getElementById('threat-context-tag');
+      const currentRegionKey = report.regionKey || (document.getElementById('municipality-select') ? document.getElementById('municipality-select').value : 'digha');
+      const regionData = REGIONS_DATABASE[currentRegionKey] || {};
+      const geoType = regionData.type || "plain";
+
+      if (contextNote && contextText) {
+        contextNote.classList.remove('hidden');
+        if (activeScenario === 'live') {
+          if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
+            const zoneTitle = (geoType === 'hilly') ? 'Himalayan Ridge & Landslide Zone' : (geoType === 'sundarbans' ? 'Sundarbans Estuary Tidal Zone' : 'Bay of Bengal Coastal Surge Front');
+            if (!isCritical) {
+              if (contextTag) contextTag.textContent = "CALM REAL-TIME WEATHER";
+              contextText.innerHTML = `<strong>Why is threat currently ${isModerate ? 'MODERATE' : 'LOW'}?</strong> Real-time Doppler sensors report peaceful weather right now in ${report.region} (Rain: ${report.live_telemetry.precipitation_mm.toFixed(1)} mm, Wind: ${report.live_telemetry.wind_speed_kmh.toFixed(1)} km/h). However, <strong>${report.region}</strong> is topographically classified in the <strong class="text-rose-400">Critical Zone</strong> (${zoneTitle}) during cyclones. <button onclick="quickSelectRegion('${currentRegionKey}', 'critical')" class="underline text-cyan-300 font-bold ml-1 hover:text-cyan-200 cursor-pointer">Simulate Critical Cyclone Drill →</button>`;
+            } else {
+              if (contextTag) contextTag.textContent = "CRITICAL STORM SURGE ALERT";
+              contextText.innerHTML = `<strong>Critical Telemetry Warning:</strong> Active high-intensity weather detected in ${report.region} (${zoneTitle}). Flood barriers, rescue boats, and high-ground shelters are fully activated.`;
+            }
+          } else {
+            if (contextTag) contextTag.textContent = "LIVE METEO FEED";
+            contextText.innerHTML = `Dynamic threat index generated live from Open-Meteo station telemetry (Precip: ${report.live_telemetry.precipitation_mm.toFixed(1)} mm, Wind: ${report.live_telemetry.wind_speed_kmh.toFixed(1)} km/h). Conditions are currently within safe thresholds.`;
+          }
+        } else {
+          if (contextTag) contextTag.textContent = "SYNTHETIC DRILL PROTOCOL";
+          contextText.innerHTML = `Synthetic disaster drill active for <strong>${report.region}</strong> (${activeScenario.toUpperCase()} MODE). Emergency routes, rescue flotillas, and edge beacons are configured for this drill scenario. <button onclick="quickSelectRegion('${currentRegionKey}', 'live')" class="underline text-cyan-300 font-bold ml-1 hover:text-cyan-200 cursor-pointer">Check Live Real-Time Weather →</button>`;
+        }
+      }
+
       // 2. Live Telemetry Readout
       document.getElementById('telemetry-precipitation').textContent = report.live_telemetry.precipitation_mm.toFixed(1);
       document.getElementById('telemetry-wind').textContent = report.live_telemetry.wind_speed_kmh.toFixed(1);
@@ -2384,9 +2432,26 @@
     }
 
     // Quick Select Region Handler
-    function quickSelectRegion(regionKey) {
+    function quickSelectRegion(regionKey, forcedScenario = null) {
       const select = document.getElementById('municipality-select');
       if (select) select.value = regionKey;
+
+      if (forcedScenario) {
+        const scenarioSelect = document.getElementById('simulation-scenario');
+        if (scenarioSelect) {
+          if (forcedScenario === 'critical' || forcedScenario === 'moderate' || forcedScenario === 'low' || forcedScenario === 'live') {
+            scenarioSelect.value = forcedScenario;
+            const label = document.getElementById('matrix-active-mode-label');
+            if (label) {
+              if (forcedScenario === 'critical') label.textContent = 'CRITICAL SURGE PROTOCOL';
+              else if (forcedScenario === 'moderate') label.textContent = 'MONSOON ADVISORY WATCH';
+              else if (forcedScenario === 'low') label.textContent = 'LOW HAZARD NORMAL';
+              else label.textContent = 'LIVE METEO MATRIX';
+            }
+          }
+        }
+      }
+
       playBeep(700, 0.04);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       executeSimulation();
@@ -2853,7 +2918,7 @@
         const scoreColor = isCrit ? 'text-rose-400' : (isMod ? 'text-amber-400' : 'text-emerald-400');
 
         return `
-          <div onclick="quickSelectRegion('${place.key}')" class="group relative rounded-2xl p-4 sm:p-5 border ${borderClass} transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+          <div onclick="quickSelectRegion('${place.key}', '${place.category}')" class="group relative rounded-2xl p-4 sm:p-5 border ${borderClass} transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
             
             <div>
               <!-- Header: Name & Badge -->
@@ -2909,7 +2974,7 @@
 
               <!-- Action Link -->
               <div class="pt-1 flex items-center justify-between text-[11px] font-mono text-cyan-400 group-hover:text-cyan-300 transition-colors">
-                <span class="font-semibold uppercase tracking-wider">Inspect Telemetry</span>
+                <span class="font-semibold uppercase tracking-wider">Inspect & Drill (${place.category.toUpperCase()})</span>
                 <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
