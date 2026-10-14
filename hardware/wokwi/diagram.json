@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "author": "Regional Disaster Simulation & Response Agent",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 80, "left": 100, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": -120, "left": 80, "attrs": { "pins": "i2c" } },
+    { "type": "wokwi-led", "id": "led-red", "top": 20, "left": 300, "attrs": { "color": "red", "label": "CRITICAL" } },
+    { "type": "wokwi-led", "id": "led-yellow", "top": 70, "left": 300, "attrs": { "color": "yellow", "label": "WATCH" } },
+    { "type": "wokwi-led", "id": "led-green", "top": 120, "left": 300, "attrs": { "color": "green", "label": "CLEAR" } },
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 180, "left": 300, "attrs": { "hasAudio": "1" } },
+    { "type": "wokwi-pushbutton", "id": "btn", "top": 250, "left": 300, "attrs": { "color": "blue", "label": "CYCLE" } }
+  ],
+  "connections": [
+    [ "esp:GND.1", "lcd:GND", "black", [ "v0" ] ],
+    [ "esp:VIN", "lcd:VCC", "red", [ "v0" ] ],
+    [ "esp:21", "lcd:SDA", "green", [ "v0" ] ],
+    [ "esp:22", "lcd:SCL", "green", [ "v0" ] ],
+    [ "esp:GND.1", "led-red:C", "black", [ "v0" ] ],
+    [ "esp:18", "led-red:A", "red", [ "v0" ] ],
+    [ "esp:GND.1", "led-yellow:C", "black", [ "v0" ] ],
+    [ "esp:19", "led-yellow:A", "gold", [ "v0" ] ],
+    [ "esp:GND.1", "led-green:C", "black", [ "v0" ] ],
+    [ "esp:23", "led-green:A", "green", [ "v0" ] ],
+    [ "esp:GND.2", "buzzer:1", "black", [ "v0" ] ],
+    [ "esp:25", "buzzer:2", "purple", [ "v0" ] ],
+    [ "esp:GND.2", "btn:1.l", "black", [ "v0" ] ],
+    [ "esp:32", "btn:2.l", "blue", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

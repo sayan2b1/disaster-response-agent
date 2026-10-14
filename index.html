@@ -177,6 +177,15 @@
           </svg>
         </button>
 
+        <!-- Telemetry Source & Token Config Modal Trigger -->
+        <button onclick="openApiModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-mono text-amber-400 hover:border-amber-500/50 transition cursor-pointer" title="Configure Meteorological API Sources & Tokens">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+          </svg>
+          <span class="hidden sm:inline">Data</span> Source
+          <span id="header-api-badge" class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-600">LIVE WMO</span>
+        </button>
+
         <!-- View Backend JSON Modal Trigger -->
         <button onclick="openJsonModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-mono text-cyan-400 hover:border-cyan-500/50 transition">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,21 +210,80 @@
         <!-- Left: Municipality Selector & Simulation Mode -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1">
           
-          <!-- Dropdown -->
-          <div class="flex-1 max-w-sm">
-            <label for="municipality-select" class="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <!-- Dropdown & Search -->
+          <div class="flex-1 max-w-md">
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="municipality-select" class="text-xs font-mono uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                West Bengal Target Municipality (30+ Cities)
+              </label>
+              <span id="zone-filter-label" class="text-[10px] font-mono text-cyan-400 bg-cyan-950/70 border border-cyan-800 px-2 py-0.5 rounded">ALL WEST BENGAL</span>
+            </div>
+
+            <!-- Quick Search Input -->
+            <div class="relative mb-2">
+              <input type="text" id="city-search-input" oninput="filterCitiesBySearch()" placeholder="Type city or district (e.g. Siliguri, Digha, Darjeeling, Malda)..." class="w-full bg-slate-950/90 text-xs text-slate-200 font-mono border border-slate-700/80 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 placeholder-slate-600 transition">
+              <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
               </svg>
-              Target Municipality
-            </label>
+            </div>
+
+            <!-- Select Dropdown with optgroups -->
             <div class="relative">
-              <select id="municipality-select" onchange="onRegionChange()" class="w-full bg-slate-950/90 text-white font-tactical font-semibold text-lg border border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition appearance-none cursor-pointer">
-                <option value="tamluk">Tamluk (Purba Medinipur)</option>
-                <option value="kalyani">Kalyani (Nadia)</option>
-                <option value="kolkata">Kolkata (Metropolitan Center)</option>
-                <option value="haldia">Haldia (Coastal & Port Zone)</option>
+              <select id="municipality-select" onchange="onRegionChange()" class="w-full bg-slate-950/90 text-white font-tactical font-semibold text-base sm:text-lg border border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition appearance-none cursor-pointer">
+                
+                <optgroup label="🏙️ Zone 1: Kolkata Metropolitan & Urban Corridor" class="bg-slate-950 text-cyan-400 font-mono font-bold text-xs">
+                  <option value="kolkata" class="text-white font-tactical text-base">Kolkata (Metropolitan Center)</option>
+                  <option value="howrah" class="text-white font-tactical text-base">Howrah (Transit & Industrial Hub)</option>
+                  <option value="barasat" class="text-white font-tactical text-base">Barasat (North 24 Parganas)</option>
+                  <option value="barrackpore" class="text-white font-tactical text-base">Barrackpore (Hooghly Industrial)</option>
+                  <option value="serampore" class="text-white font-tactical text-base">Serampore (Hooghly Valley)</option>
+                  <option value="chinsurah" class="text-white font-tactical text-base">Chinsurah (Hooghly HQ)</option>
+                </optgroup>
+
+                <optgroup label="🌊 Zone 2: Sundarbans & Coastal Zone (Surge & Cyclone Risk)" class="bg-slate-950 text-cyan-400 font-mono font-bold text-xs">
+                  <option value="digha" class="text-white font-tactical text-base">Digha (Bay of Bengal Coast)</option>
+                  <option value="haldia" class="text-white font-tactical text-base">Haldia (Coastal & Port Hub)</option>
+                  <option value="tamluk" class="text-white font-tactical text-base" selected>Tamluk (Purba Medinipur / Rupnarayan)</option>
+                  <option value="canning" class="text-white font-tactical text-base">Canning (Sundarbans Gateway)</option>
+                  <option value="kakdwip" class="text-white font-tactical text-base">Kakdwip (Sundarbans Island Delta)</option>
+                  <option value="diamond_harbour" class="text-white font-tactical text-base">Diamond Harbour (Hooghly Estuary)</option>
+                  <option value="basirhat" class="text-white font-tactical text-base">Basirhat (Ichamati Basin Delta)</option>
+                </optgroup>
+
+                <optgroup label="🏔️ Zone 3: North Bengal & Sub-Himalayan (Landslide & Flash Flood)" class="bg-slate-950 text-cyan-400 font-mono font-bold text-xs">
+                  <option value="darjeeling" class="text-white font-tactical text-base">Darjeeling (Himalayan Ridge / Landslide Risk)</option>
+                  <option value="kalimpong" class="text-white font-tactical text-base">Kalimpong (Sub-Himalayan Hill District)</option>
+                  <option value="siliguri" class="text-white font-tactical text-base">Siliguri (North Bengal Gateway)</option>
+                  <option value="jalpaiguri" class="text-white font-tactical text-base">Jalpaiguri (Teesta River Floodplain)</option>
+                  <option value="alipurduar" class="text-white font-tactical text-base">Alipurduar (Dooars Riverine Belt)</option>
+                  <option value="cooch_behar" class="text-white font-tactical text-base">Cooch Behar (Torsa Basin Plain)</option>
+                </optgroup>
+
+                <optgroup label="🌾 Zone 4: Central Bengal & Gangetic Riverine Basin" class="bg-slate-950 text-cyan-400 font-mono font-bold text-xs">
+                  <option value="malda" class="text-white font-tactical text-base">Malda (Ganga/Mahananda Basin)</option>
+                  <option value="baharampur" class="text-white font-tactical text-base">Baharampur (Murshidabad / Bhagirathi)</option>
+                  <option value="krishnanagar" class="text-white font-tactical text-base">Krishnanagar (Nadia / Jalangi)</option>
+                  <option value="kalyani" class="text-white font-tactical text-base">Kalyani (Nadia / Lower Gangetic)</option>
+                  <option value="balurghat" class="text-white font-tactical text-base">Balurghat (Dakshin Dinajpur)</option>
+                  <option value="raiganj" class="text-white font-tactical text-base">Raiganj (Uttar Dinajpur)</option>
+                </optgroup>
+
+                <optgroup label="🏭 Zone 5: Western Rarh & Industrial Region" class="bg-slate-950 text-cyan-400 font-mono font-bold text-xs">
+                  <option value="asansol" class="text-white font-tactical text-base">Asansol (Western Industrial & Mining)</option>
+                  <option value="durgapur" class="text-white font-tactical text-base">Durgapur (Damodar Industrial Belt)</option>
+                  <option value="bardhaman" class="text-white font-tactical text-base">Bardhaman (Damodar Alluvial Plain)</option>
+                  <option value="kharagpur" class="text-white font-tactical text-base">Kharagpur (South-West Rail & Transit)</option>
+                  <option value="medinipur" class="text-white font-tactical text-base">Medinipur (Kangsabati Basin)</option>
+                  <option value="bankura" class="text-white font-tactical text-base">Bankura (Rarh Upland Basin)</option>
+                  <option value="purulia" class="text-white font-tactical text-base">Purulia (Chota Nagpur Fringe)</option>
+                  <option value="suri" class="text-white font-tactical text-base">Suri (Birbhum / Mayurakshi)</option>
+                  <option value="bolpur" class="text-white font-tactical text-base">Bolpur / Santiniketan (Kopai Valley)</option>
+                </optgroup>
+
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +302,7 @@
               Telemetry / Threat Mode
             </label>
             <div class="relative">
-              <select id="simulation-scenario" class="w-full bg-slate-950/90 text-slate-200 font-mono text-sm border border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition appearance-none cursor-pointer">
+              <select id="simulation-scenario" onchange="onScenarioChange()" class="w-full bg-slate-950/90 text-slate-200 font-mono text-sm border border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition appearance-none cursor-pointer">
                 <option value="live">Live Open-Meteo Telemetry (Auto)</option>
                 <option value="critical">Severe Cyclone / Inundation (CRITICAL)</option>
                 <option value="moderate">Monsoon Drainage Surge (MODERATE)</option>
@@ -270,13 +338,56 @@
 
       </div>
 
-      <!-- Quick Municipality Badges -->
-      <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2 text-xs font-mono text-slate-400">
-        <span class="text-slate-500">Quick Sectors:</span>
-        <button onclick="quickSelectRegion('tamluk')" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition">Tamluk (22.29°N, 87.92°E)</button>
-        <button onclick="quickSelectRegion('kalyani')" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition">Kalyani (22.97°N, 88.43°E)</button>
-        <button onclick="quickSelectRegion('kolkata')" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition">Kolkata (22.57°N, 88.36°E)</button>
-        <button onclick="quickSelectRegion('haldia')" class="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition">Haldia (22.06°N, 88.06°E)</button>
+      <!-- Zone Filter Pills & Quick Municipality Badges -->
+      <div class="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-mono">
+          <span class="text-slate-500 mr-1 text-[11px] uppercase tracking-wider">Zone Filter:</span>
+          <button onclick="filterZone('all')" class="zone-pill px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500 text-cyan-300 font-semibold text-[11px] hover:bg-cyan-900 transition">All WB (30)</button>
+          <button onclick="filterZone('Zone 1')" class="zone-pill px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[11px] hover:border-cyan-500/50 hover:text-white transition">🏙️ Kolkata Metro</button>
+          <button onclick="filterZone('Zone 2')" class="zone-pill px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[11px] hover:border-cyan-500/50 hover:text-white transition">🌊 Sundarbans & Coast</button>
+          <button onclick="filterZone('Zone 3')" class="zone-pill px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[11px] hover:border-cyan-500/50 hover:text-white transition">🏔️ North Bengal & Hills</button>
+          <button onclick="filterZone('Zone 4')" class="zone-pill px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[11px] hover:border-cyan-500/50 hover:text-white transition">🌾 Central Riverine</button>
+          <button onclick="filterZone('Zone 5')" class="zone-pill px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 text-[11px] hover:border-cyan-500/50 hover:text-white transition">🏭 Western Rarh</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-mono text-slate-400">
+          <span class="text-slate-500 text-[11px] uppercase tracking-wider">Major Hubs:</span>
+          <button onclick="quickSelectRegion('kolkata')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Kolkata</button>
+          <button onclick="quickSelectRegion('darjeeling')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/50 text-amber-300 transition text-[11px]">🏔️ Darjeeling</button>
+          <button onclick="quickSelectRegion('digha')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-rose-500/50 text-rose-300 transition text-[11px]">🌊 Digha</button>
+          <button onclick="quickSelectRegion('siliguri')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Siliguri</button>
+          <button onclick="quickSelectRegion('canning')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 text-emerald-300 transition text-[11px]">Canning (Sundarbans)</button>
+          <button onclick="quickSelectRegion('malda')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Malda</button>
+          <button onclick="quickSelectRegion('asansol')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Asansol</button>
+          <button onclick="quickSelectRegion('tamluk')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Tamluk</button>
+          <button onclick="quickSelectRegion('haldia')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Haldia</button>
+          <button onclick="quickSelectRegion('kalyani')" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-slate-300 transition text-[11px]">Kalyani</button>
+        </div>
+
+        <!-- Threat Zone Quick Filter Row -->
+        <div class="flex flex-wrap items-center gap-2 pt-2.5 border-t border-slate-800/80 text-xs font-mono">
+          <span class="text-slate-400 text-[11px] uppercase tracking-wider flex items-center gap-1.5 font-bold">
+            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Threat Zone Quick Filter:
+          </span>
+          <button onclick="selectThreatFilter('critical', true)" id="quick-threat-btn-critical" class="quick-threat-btn px-2.5 py-1 rounded-lg bg-rose-950/70 border border-rose-500/70 text-rose-300 font-semibold text-[11px] hover:bg-rose-900 transition flex items-center gap-1.5 shadow-[0_0_12px_rgba(244,63,94,0.25)]">
+            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+            <span>🔴 Critical Places (<span id="quick-count-critical">8</span>)</span>
+          </button>
+          <button onclick="selectThreatFilter('moderate', true)" id="quick-threat-btn-moderate" class="quick-threat-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-amber-300 text-[11px] hover:border-amber-500/50 hover:bg-amber-950/30 transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>🟡 Moderate Places (<span id="quick-count-moderate">18</span>)</span>
+          </button>
+          <button onclick="selectThreatFilter('low', true)" id="quick-threat-btn-low" class="quick-threat-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-emerald-300 text-[11px] hover:border-emerald-500/50 hover:bg-emerald-950/30 transition flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>🟢 Low Hazard (<span id="quick-count-low">8</span>)</span>
+          </button>
+          <button onclick="selectThreatFilter('all', true)" id="quick-threat-btn-all" class="quick-threat-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-[11px] hover:border-cyan-500/50 hover:bg-slate-800 transition flex items-center gap-1.5">
+            <span>🌐 View All Places (34)</span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -370,6 +481,17 @@
             <span>LOW (0-25)</span>
             <span>MODERATE (26-60)</span>
             <span>CRITICAL (61-100)</span>
+          </div>
+
+          <!-- Quick Jump to Statewide Threat Matrix -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <span class="text-[11px] font-mono text-slate-400">Zone Places:</span>
+            <button id="view-threat-places-btn" onclick="scrollToThreatMatrix()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-rose-950/80 text-rose-300 border border-rose-500/60 hover:bg-rose-900 shadow-[0_0_12px_rgba(244,63,94,0.3)] cursor-pointer">
+              <span id="view-threat-places-text">View All Places in Critical Zone</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
         </div>
       </article>
@@ -651,6 +773,359 @@
 
     </div>
 
+    <!-- ============================================================== -->
+    <!-- EDGE IOT FIELD BEACON & HARDWARE SIMULATOR (ESP32 + 16x2 I2C LCD) -->
+    <!-- ============================================================== -->
+    <section id="edge-iot-beacon-section" class="hud-card rounded-2xl p-5 sm:p-7 border border-cyan-500/30 relative overflow-hidden transition-all duration-300 shadow-[0_0_40px_rgba(6,182,212,0.12)]">
+      <!-- Glow ambient background -->
+      <div id="hw-ambient-glow" class="absolute -right-20 -bottom-20 w-72 h-72 rounded-full blur-3xl pointer-events-none bg-emerald-600/10 transition-colors duration-500"></div>
+
+      <!-- Section Title & Meta Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800 relative z-10">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="p-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/50 text-cyan-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+            </span>
+            <h2 class="text-xl sm:text-2xl font-tactical font-bold uppercase tracking-wider text-white flex items-center gap-2.5">
+              <span>Edge IoT Field Beacon & Hardware Simulator</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 border border-emerald-600 text-emerald-400 font-bold">
+                ESP32 + 16x2 LCD
+              </span>
+            </h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 font-sans">
+            Simulates off-grid municipal emergency warning beacons (Wokwi-compatible) deployed at relief centers, flood gates, and storm shelters.
+          </p>
+        </div>
+
+        <!-- Hardware Action Controls -->
+        <div class="flex items-center flex-wrap gap-2.5 self-start md:self-center font-mono text-xs">
+          <!-- Hardware Siren Sound Toggle -->
+          <button id="hw-siren-toggle-btn" onclick="toggleHardwareSiren()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-amber-500/60 text-slate-300 hover:text-amber-300 transition cursor-pointer">
+            <span id="hw-siren-icon">🔇</span>
+            <span>HW Siren:</span>
+            <span id="hw-siren-status" class="text-[10px] font-bold text-slate-500">OFF</span>
+          </button>
+
+          <!-- Open Wokwi Code Modal Button -->
+          <button onclick="openWokwiModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-tactical font-bold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(6,182,212,0.3)] transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            <span>Wokwi Circuit & Code</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Dual Hardware Deck -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 relative z-10">
+        
+        <!-- Left Column: The Virtual ESP32 Hardware Beacon (7 Cols) -->
+        <div class="lg:col-span-7 rounded-2xl bg-gradient-to-b from-slate-900 via-[#0a0f1d] to-[#060a13] border-2 border-slate-700/80 p-5 sm:p-6 shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative">
+          
+          <!-- PCB Header Details -->
+          <div class="flex items-center justify-between pb-4 border-b border-slate-800 text-[11px] font-mono text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              <span class="text-white font-bold tracking-wider">ESP32-WROOM-32D</span>
+              <span class="text-slate-600">|</span>
+              <span class="text-cyan-400">240MHz DUAL-CORE</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500">BUS:</span>
+              <span class="text-emerald-400 font-bold">I2C (0x27)</span>
+              <span class="text-slate-600">•</span>
+              <span class="text-slate-500">BAUD:</span>
+              <span class="text-amber-400 font-bold">115200</span>
+            </div>
+          </div>
+
+          <!-- Physical 16x2 LCD Display Unit -->
+          <div class="mt-5 p-3 rounded-2xl bg-slate-950 border-2 border-slate-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.9)]">
+            <!-- Screen Bezel Outer Frame -->
+            <div class="p-2 sm:p-3 rounded-xl bg-[#031508] border border-emerald-950">
+              
+              <!-- LCD Header Indicator Bar -->
+              <div class="flex items-center justify-between text-[10px] font-mono text-emerald-600 pb-1.5 px-1 border-b border-emerald-950/80">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                  HD44780 + PCF8574 BACKLIT LCD
+                </span>
+                <span id="hw-lcd-mode-tag">AUTO-ROTATING [SCREEN A/B]</span>
+              </div>
+
+              <!-- Pixel Grid / Phosphor Glowing LCD -->
+              <div id="hw-lcd-screen" class="mt-2 py-4 px-3 sm:px-4 rounded-lg bg-[#062410] border border-emerald-800/60 shadow-[inset_0_0_25px_rgba(16,185,129,0.25)] font-mono transition-colors duration-500">
+                <!-- Line 1: 16 chars max -->
+                <div id="hw-lcd-line1" class="text-base sm:text-lg md:text-xl font-bold tracking-[0.18em] text-[#34d399] drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] select-none truncate">
+                  TAMLUK ALERT:   
+                </div>
+                <!-- Line 2: 16 chars max -->
+                <div id="hw-lcd-line2" class="text-base sm:text-lg md:text-xl font-bold tracking-[0.18em] text-[#34d399] drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] mt-1 select-none truncate">
+                  EVACUATE ROUTE A
+                </div>
+              </div>
+
+              <!-- Contrast / Backlight metadata -->
+              <div class="mt-2 flex items-center justify-between text-[9px] font-mono text-emerald-700/80 px-1">
+                <span>5V VIN • SDA=GPIO21 • SCL=GPIO22</span>
+                <span>16 COLS x 2 ROWS DOT MATRIX</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Hardware Peripheral LED & Buzzer Bank -->
+          <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            
+            <!-- LED 1: Power -->
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center">
+              <div class="w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] mb-1.5"></div>
+              <span class="text-[10px] font-mono text-slate-400">PWR LED (3V3)</span>
+              <span class="text-[9px] font-mono font-bold text-emerald-400">ONLINE</span>
+            </div>
+
+            <!-- LED 2: Critical Alarm Strobe -->
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center">
+              <div id="hw-led-red" class="w-4 h-4 rounded-full bg-rose-500 shadow-[0_0_12px_#f43f5e] animate-ping mb-1.5 transition-all"></div>
+              <span class="text-[10px] font-mono text-slate-400">RED SIREN (D18)</span>
+              <span id="hw-led-red-label" class="text-[9px] font-mono font-bold text-rose-400">PULSING</span>
+            </div>
+
+            <!-- LED 3: Watch Advisory -->
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center">
+              <div id="hw-led-yellow" class="w-4 h-4 rounded-full bg-slate-700 mb-1.5 transition-all"></div>
+              <span class="text-[10px] font-mono text-slate-400">WATCH LED (D19)</span>
+              <span id="hw-led-yellow-label" class="text-[9px] font-mono font-bold text-slate-500">STANDBY</span>
+            </div>
+
+            <!-- Buzzer: Piezo Siren -->
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col items-center">
+              <div id="hw-piezo-indicator" class="w-4 h-4 rounded-full bg-purple-500 shadow-[0_0_10px_#a855f7] mb-1.5 flex items-center justify-center text-[10px]">
+                🔔
+              </div>
+              <span class="text-[10px] font-mono text-slate-400">BUZZER (D25)</span>
+              <span id="hw-buzzer-label" class="text-[9px] font-mono font-bold text-purple-300">ARMED</span>
+            </div>
+
+          </div>
+
+          <!-- Hardware Tactile Controls -->
+          <div class="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <!-- Physical Push Button Simulation -->
+              <button onclick="simulateHardwareButtonPress()" class="px-3.5 py-1.5 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-500/50 text-blue-200 text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer active:scale-95">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_6px_#60a5fa]"></span>
+                <span>Push Button (GPIO 32)</span>
+              </button>
+
+              <!-- Flip Screen Button -->
+              <button onclick="toggleHardwareScreenFlip()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition cursor-pointer">
+                Flip Screen (A/B)
+              </button>
+            </div>
+
+            <span class="text-[11px] font-mono text-slate-500">
+              Synced with AI Command Center
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Live UART Serial Monitor Stream (5 Cols) -->
+        <div class="lg:col-span-5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col overflow-hidden shadow-xl">
+          
+          <!-- Serial Monitor Title Bar -->
+          <div class="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="flex gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+              </div>
+              <span class="text-xs font-mono font-bold text-slate-300 ml-2">ESP32 Serial Monitor</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono text-slate-400">115200 Baud</span>
+              <button onclick="clearSerialConsole()" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Serial Terminal Log Feed -->
+          <div id="hw-serial-log" class="p-3.5 flex-1 bg-black/95 font-mono text-[11px] text-emerald-400 space-y-1 overflow-y-auto max-h-[310px] min-h-[240px] leading-relaxed">
+            <div class="text-slate-500">// ESP32 Field Beacon UART stream online...</div>
+            <div class="text-cyan-400">[BOOT] ESP32 DevKit v1 initialized (240MHz).</div>
+            <div class="text-cyan-400">[I2C] Bus scanned: LCD located at 0x27 (PCF8574).</div>
+            <div class="text-amber-300">[READY] Beacon listening for AI disaster directives...</div>
+          </div>
+
+          <!-- Command Input Box -->
+          <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex gap-2">
+            <input type="text" id="hw-serial-input" placeholder="Send serial command (e.g. ALERT:DIGHA:CRITICAL)..." onkeydown="if(event.key==='Enter') sendSerialCommand()" class="flex-1 bg-slate-950 text-xs font-mono text-slate-200 border border-slate-700/80 rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-500 placeholder-slate-600">
+            <button onclick="sendSerialCommand()" class="px-3 py-1.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-600 text-cyan-300 text-xs font-mono font-bold rounded-lg transition cursor-pointer">
+              Send
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- STATEWIDE HAZARD MATRIX & THREAT ZONE EXPLORER (Critical / Moderate / Low) -->
+    <!-- ============================================================== -->
+    <section id="statewide-threat-matrix" class="hud-card rounded-2xl p-5 sm:p-7 border border-slate-800 relative overflow-hidden transition-all duration-300">
+      <!-- Glow ambient background -->
+      <div id="matrix-ambient-glow" class="absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl pointer-events-none bg-rose-600/10 transition-colors duration-500"></div>
+
+      <!-- Section Title & Meta Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800 relative z-10">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="p-1.5 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+            </span>
+            <h2 class="text-xl sm:text-2xl font-tactical font-bold uppercase tracking-wider text-white">
+              Statewide Threat Zone Explorer & Hazard Matrix
+            </h2>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 border border-cyan-700 text-cyan-300">
+              34 MUNICIPALITIES
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 font-sans">
+            Select <strong class="text-rose-400 font-semibold">Critical</strong>, <strong class="text-amber-400 font-semibold">Moderate</strong>, or <strong class="text-emerald-400 font-semibold">Low</strong> to view every city and place categorized under that risk level across West Bengal.
+          </p>
+        </div>
+
+        <!-- Telemetry Status Tag -->
+        <div class="flex items-center gap-2 self-start md:self-center font-mono text-xs">
+          <span class="text-slate-500">MATRIX SYNC:</span>
+          <span id="matrix-active-mode-label" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-cyan-300 font-semibold">
+            TELEMETRY CALIBRATED
+          </span>
+        </div>
+      </div>
+
+      <!-- Threat Category Filter Tabs -->
+      <div class="mt-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+        
+        <!-- Interactive Category Tabs -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 flex-1 max-w-3xl">
+          
+          <!-- Critical Tab -->
+          <button onclick="selectThreatFilter('critical')" id="matrix-tab-critical" class="threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-rose-950/50 border-rose-500/80 text-rose-200 shadow-[0_0_20px_rgba(244,63,94,0.25)] ring-1 ring-rose-500/50 cursor-pointer">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-rose-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                CRITICAL ZONE
+              </span>
+              <span id="tab-count-critical" class="text-base font-mono font-black text-rose-300 px-2 py-0.5 rounded bg-rose-900/60 border border-rose-500/40">
+                8
+              </span>
+            </div>
+            <div class="text-[11px] text-rose-300/80 font-sans font-medium line-clamp-1">
+              Severe Surge & Landslide Risk
+            </div>
+          </button>
+
+          <!-- Moderate Tab -->
+          <button onclick="selectThreatFilter('moderate')" id="matrix-tab-moderate" class="threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-slate-950/80 border-slate-800 text-slate-300 hover:border-amber-500/60 hover:bg-amber-950/20 cursor-pointer">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-amber-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                MODERATE ZONE
+              </span>
+              <span id="tab-count-moderate" class="text-base font-mono font-black text-amber-300 px-2 py-0.5 rounded bg-amber-900/60 border border-amber-500/40">
+                18
+              </span>
+            </div>
+            <div class="text-[11px] text-slate-400 group-hover:text-amber-300/80 font-sans font-medium line-clamp-1">
+              Monsoon Drainage & Gale Watch
+            </div>
+          </button>
+
+          <!-- Low Tab -->
+          <button onclick="selectThreatFilter('low')" id="matrix-tab-low" class="threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-slate-950/80 border-slate-800 text-slate-300 hover:border-emerald-500/60 hover:bg-emerald-950/20 cursor-pointer">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-emerald-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                LOW HAZARD
+              </span>
+              <span id="tab-count-low" class="text-base font-mono font-black text-emerald-300 px-2 py-0.5 rounded bg-emerald-900/60 border border-emerald-500/40">
+                8
+              </span>
+            </div>
+            <div class="text-[11px] text-slate-400 group-hover:text-emerald-300/80 font-sans font-medium line-clamp-1">
+              Normal Drainage & Trace Rainfall
+            </div>
+          </button>
+
+          <!-- All Places Tab -->
+          <button onclick="selectThreatFilter('all')" id="matrix-tab-all" class="threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-slate-950/80 border-slate-800 text-slate-300 hover:border-cyan-500/60 hover:bg-slate-900 cursor-pointer">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-mono font-bold tracking-wider uppercase text-cyan-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                ALL PLACES
+              </span>
+              <span id="tab-count-all" class="text-base font-mono font-black text-cyan-300 px-2 py-0.5 rounded bg-cyan-950 border border-cyan-700">
+                34
+              </span>
+            </div>
+            <div class="text-[11px] text-slate-400 group-hover:text-cyan-300/80 font-sans font-medium line-clamp-1">
+              All 34 Municipalities Matrix
+            </div>
+          </button>
+
+        </div>
+
+        <!-- Filter Search & Zone Select -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div class="relative flex-1 sm:w-60">
+            <input type="text" id="matrix-search-input" oninput="renderThreatMatrixCards()" placeholder="Search places (e.g. Digha, Darjeeling)..." class="w-full bg-slate-950/90 text-xs text-slate-200 font-mono border border-slate-700/80 rounded-xl pl-8 pr-3 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 placeholder-slate-600 transition">
+            <svg class="w-4 h-4 text-slate-500 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          
+          <select id="matrix-subzone-select" onchange="renderThreatMatrixCards()" class="bg-slate-950/90 text-xs text-slate-300 font-mono border border-slate-700/80 rounded-xl px-3 py-2.5 focus:outline-none focus:border-cyan-500 cursor-pointer">
+            <option value="all">All 5 Zones</option>
+            <option value="Zone 1">Zone 1: Kolkata Metro</option>
+            <option value="Zone 2">Zone 2: Coastal & Sundarbans</option>
+            <option value="Zone 3">Zone 3: North Bengal & Hills</option>
+            <option value="Zone 4">Zone 4: Central Bengal</option>
+            <option value="Zone 5">Zone 5: Western Rarh</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Filtered Status Callout Banner -->
+      <div id="matrix-status-banner" class="mt-5 p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 flex flex-wrap items-center justify-between gap-3 text-xs font-mono transition-all duration-300">
+        <div class="flex items-center gap-2 text-rose-300">
+          <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span id="matrix-banner-text">Showing <strong>8 Municipalities</strong> in <strong>CRITICAL ZONE</strong>. Severe storm surge, flooding, or landslide risk active.</span>
+        </div>
+        <span class="text-[11px] text-slate-400">Click any municipality card below to simulate telemetry & inspect response protocol</span>
+      </div>
+
+      <!-- Places Card Grid -->
+      <div id="threat-matrix-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
+        <!-- Dynamically populated by renderThreatMatrixCards() in JavaScript -->
+      </div>
+
+    </section>
+
     <!-- Live Telemetry Station Detail / Map Coordinate Strip -->
     <section class="hud-card rounded-2xl p-4 border border-slate-800 text-xs font-mono text-slate-400 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-2">
@@ -707,6 +1182,298 @@
     </div>
   </div>
 
+  <!-- ============================================================== -->
+  <!-- TELEMETRY SOURCES & AUTHENTICATED API TOKENS CONFIG MODAL -->
+  <!-- ============================================================== -->
+  <div id="api-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 hidden">
+    <div class="hud-card rounded-2xl border border-amber-500/50 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_0_60px_rgba(245,158,11,0.25)]">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-950 border border-amber-500/60 flex items-center justify-center text-amber-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-tactical font-bold text-base sm:text-lg text-white uppercase tracking-wider">
+              Telemetry Sources & API Token Configuration
+            </h3>
+            <p class="text-[11px] font-mono text-slate-400">
+              Data Authenticity Disclosure & Live Provider Downlinks
+            </p>
+          </div>
+        </div>
+        <button onclick="closeApiModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 overflow-y-auto flex-1 space-y-5 bg-slate-950/95 font-sans text-xs">
+        
+        <!-- Authenticity & Provenance Info Card -->
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+          <div class="flex items-center gap-2 text-cyan-300 font-mono font-bold text-xs">
+            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            WHERE DOES THE DATA COME FROM? ARE THE DATAS AUTHENTIC?
+          </div>
+          <p class="text-slate-300 leading-relaxed font-sans text-xs">
+            <strong>Yes, the live telemetry is 100% authentic.</strong> When in <em>"Live Open-Meteo Telemetry"</em> mode, the system queries the <strong>Open-Meteo API</strong>, which aggregates meteorological data directly from the world's primary numerical weather prediction supercomputers:
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <span class="text-cyan-400 font-bold block">ECMWF (Europe)</span>
+              <span class="text-slate-400">Integrated Forecasting System (0.1° high-res grid)</span>
+            </div>
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <span class="text-emerald-400 font-bold block">NOAA GFS (USA)</span>
+              <span class="text-slate-400">Global Forecast System Satellite Mesh</span>
+            </div>
+            <div class="p-2 rounded bg-slate-950 border border-slate-800">
+              <span class="text-amber-400 font-bold block">DWD ICON (Germany)</span>
+              <span class="text-slate-400">Icosahedral Nonhydrostatic Hydro-model</span>
+            </div>
+          </div>
+          <p class="text-slate-400 text-[11px] leading-relaxed pt-1">
+            <strong>Live vs Stress-Test Simulations:</strong> When you select <em>"Severe Cyclone (CRITICAL)"</em> or <em>"Monsoon Drainage (MODERATE)"</em>, the simulation purposefully injects extreme scenario thresholds (e.g. 24+ mm rain / 55+ km/h gales) so emergency response teams can simulate evacuations and resource mobilization even if the sky is currently calm.
+          </p>
+        </div>
+
+        <!-- Provider Selection -->
+        <div class="space-y-3">
+          <label class="block text-xs font-mono uppercase tracking-wider text-slate-300 font-bold">
+            Select Active Telemetry Provider:
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            
+            <!-- Open-Meteo -->
+            <label class="provider-radio-card p-3 rounded-xl border border-cyan-500/60 bg-cyan-950/20 cursor-pointer flex flex-col justify-between transition hover:border-cyan-400">
+              <div class="flex items-start justify-between">
+                <input type="radio" name="telemetry-provider" value="openmeteo" checked onchange="onProviderSelectChange()" class="text-cyan-500 mt-0.5">
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 font-bold">NO KEY REQ</span>
+              </div>
+              <div class="mt-2">
+                <div class="font-tactical font-bold text-white text-sm">Open-Meteo</div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5">ECMWF / NOAA WMO Downlink</div>
+              </div>
+            </label>
+
+            <!-- OpenWeatherMap -->
+            <label class="provider-radio-card p-3 rounded-xl border border-slate-800 bg-slate-900/60 cursor-pointer flex flex-col justify-between transition hover:border-amber-500/50">
+              <div class="flex items-start justify-between">
+                <input type="radio" name="telemetry-provider" value="openweathermap" onchange="onProviderSelectChange()" class="text-amber-500 mt-0.5">
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600 font-bold">TOKEN REQ</span>
+              </div>
+              <div class="mt-2">
+                <div class="font-tactical font-bold text-white text-sm">OpenWeatherMap</div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5">Official Observation Stations</div>
+              </div>
+            </label>
+
+            <!-- WeatherAPI -->
+            <label class="provider-radio-card p-3 rounded-xl border border-slate-800 bg-slate-900/60 cursor-pointer flex flex-col justify-between transition hover:border-amber-500/50">
+              <div class="flex items-start justify-between">
+                <input type="radio" name="telemetry-provider" value="weatherapi" onchange="onProviderSelectChange()" class="text-amber-500 mt-0.5">
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600 font-bold">TOKEN REQ</span>
+              </div>
+              <div class="mt-2">
+                <div class="font-tactical font-bold text-white text-sm">WeatherAPI.com</div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5">Real-Time Doppler Radar</div>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- API Key Input Section -->
+        <div id="api-key-input-block" class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <label for="weather-api-key-input" class="text-xs font-mono font-bold text-slate-300 flex items-center gap-1.5">
+              <span>🔑</span> Provider API Key / Token:
+            </label>
+            <span id="api-key-status-pill" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+              OPTIONAL FOR OPEN-METEO
+            </span>
+          </div>
+
+          <div class="flex gap-2">
+            <input type="password" id="weather-api-key-input" placeholder="Paste your API key (e.g. 8fa37b82f1...)" class="flex-1 bg-slate-950 text-xs font-mono text-white border border-slate-700 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition">
+            <button type="button" onclick="toggleApiKeyVisibility()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-mono text-xs transition cursor-pointer">
+              <span id="key-visibility-label">Show</span>
+            </button>
+            <button type="button" onclick="testApiConnection()" class="px-4 py-2 bg-amber-950 hover:bg-amber-900 border border-amber-600 text-amber-300 rounded-xl font-mono text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+              <span>⚡</span> Test
+            </button>
+          </div>
+
+          <!-- Live Ping Test Result -->
+          <div id="api-test-result" class="hidden p-2.5 rounded-lg font-mono text-xs"></div>
+
+          <!-- Guide to generate API Tokens for reliable sources -->
+          <div class="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 space-y-1.5">
+            <div class="font-bold text-slate-300">How to get reliable API tokens (Free in 60 seconds):</div>
+            <ul class="list-disc list-inside space-y-1 text-slate-400 pl-1">
+              <li>
+                <strong class="text-amber-400">OpenWeatherMap:</strong> Sign up free at <a href="https://openweathermap.org/api" target="_blank" class="text-cyan-400 hover:underline">openweathermap.org/api</a> & copy your 32-character key.
+              </li>
+              <li>
+                <strong class="text-amber-400">WeatherAPI.com:</strong> Instant sign-up at <a href="https://www.weatherapi.com/signup.aspx" target="_blank" class="text-cyan-400 hover:underline">weatherapi.com</a> to get live Doppler radar telemetry.
+              </li>
+              <li>
+                <strong class="text-cyan-400">India Meteorological Department (IMD):</strong> Official government data at <a href="https://data.gov.in" target="_blank" class="text-cyan-400 hover:underline">data.gov.in</a> or Regional Met Center Kolkata.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-[11px] font-mono text-slate-400">
+          Keys are stored locally in your browser session / localStorage.
+        </span>
+        <div class="flex items-center gap-2">
+          <button onclick="closeApiModal()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg transition">
+            Cancel
+          </button>
+          <button onclick="saveApiConfig()" class="px-5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-tactical font-bold uppercase tracking-wider rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.3)] transition cursor-pointer">
+            Save & Connect Provider
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- WOKWI HARDWARE SIMULATION HUB & CODE EXPORT MODAL -->
+  <!-- ============================================================== -->
+  <div id="wokwi-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 hidden">
+    <div class="hud-card rounded-2xl border border-cyan-500/50 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_0_60px_rgba(6,182,212,0.25)]">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-500/60 flex items-center justify-center text-cyan-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-tactical font-bold text-base sm:text-lg text-white uppercase tracking-wider">
+              Wokwi ESP32 Hardware Simulation Hub
+            </h3>
+            <p class="text-[11px] font-mono text-slate-400">
+              Complete Firmware & Circuit Schematics for Wokwi.com Simulator
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="https://wokwi.com/projects/new/esp32" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-950 hover:bg-cyan-900 border border-cyan-600 text-cyan-300 text-xs font-mono font-bold transition">
+            <span>Launch Wokwi ↗</span>
+          </a>
+          <button onclick="closeWokwiModal()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Selectors -->
+      <div class="flex border-b border-slate-800 bg-slate-900/60 px-4 pt-2 gap-2 font-mono text-xs overflow-x-auto">
+        <button onclick="switchWokwiTab('sketch')" id="wokwi-tab-sketch" class="px-3.5 py-2 rounded-t-lg font-bold border-t border-l border-r border-cyan-500/80 bg-slate-950 text-cyan-300 transition">
+          sketch.ino (C++ Firmware)
+        </button>
+        <button onclick="switchWokwiTab('diagram')" id="wokwi-tab-diagram" class="px-3.5 py-2 rounded-t-lg font-bold border-t border-l border-r border-transparent text-slate-400 hover:text-slate-200 transition">
+          diagram.json (Wiring)
+        </button>
+        <button onclick="switchWokwiTab('libraries')" id="wokwi-tab-libraries" class="px-3.5 py-2 rounded-t-lg font-bold border-t border-l border-r border-transparent text-slate-400 hover:text-slate-200 transition">
+          libraries.txt
+        </button>
+        <button onclick="switchWokwiTab('guide')" id="wokwi-tab-guide" class="px-3.5 py-2 rounded-t-lg font-bold border-t border-l border-r border-transparent text-slate-400 hover:text-slate-200 transition">
+          Integration Guide
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="p-4 overflow-y-auto flex-1 bg-slate-950 font-mono text-xs text-slate-200">
+        
+        <!-- Tab 1: sketch.ino -->
+        <div id="wokwi-content-sketch" class="space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Target: ESP32 DevKit v1 • PCF8574 I2C LCD @ 0x27 • 115200 Baud UART</span>
+            <button onclick="copyWokwiSnippet('sketch')" class="px-3 py-1 bg-cyan-950 border border-cyan-700 hover:border-cyan-400 text-cyan-300 rounded flex items-center gap-1 cursor-pointer">
+              <span id="copy-sketch-label">Copy sketch.ino</span>
+            </button>
+          </div>
+          <pre id="wokwi-code-sketch" class="p-3 bg-black/90 rounded-xl border border-slate-800 text-emerald-400 overflow-x-auto text-[11px] leading-relaxed max-h-[380px]"></pre>
+        </div>
+
+        <!-- Tab 2: diagram.json -->
+        <div id="wokwi-content-diagram" class="space-y-2 hidden">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Paste into Wokwi "diagram.json" tab to auto-wire LCD, LEDs & Buzzer</span>
+            <button onclick="copyWokwiSnippet('diagram')" class="px-3 py-1 bg-cyan-950 border border-cyan-700 hover:border-cyan-400 text-cyan-300 rounded flex items-center gap-1 cursor-pointer">
+              <span id="copy-diagram-label">Copy diagram.json</span>
+            </button>
+          </div>
+          <pre id="wokwi-code-diagram" class="p-3 bg-black/90 rounded-xl border border-slate-800 text-cyan-300 overflow-x-auto text-[11px] leading-relaxed max-h-[380px]"></pre>
+        </div>
+
+        <!-- Tab 3: libraries.txt -->
+        <div id="wokwi-content-libraries" class="space-y-2 hidden">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Paste into Wokwi "libraries.txt" tab</span>
+            <button onclick="copyWokwiSnippet('libraries')" class="px-3 py-1 bg-cyan-950 border border-cyan-700 hover:border-cyan-400 text-cyan-300 rounded flex items-center gap-1 cursor-pointer">
+              <span id="copy-libraries-label">Copy libraries.txt</span>
+            </button>
+          </div>
+          <pre id="wokwi-code-libraries" class="p-3 bg-black/90 rounded-xl border border-slate-800 text-amber-300 overflow-x-auto text-xs leading-relaxed max-h-[380px]">LiquidCrystal I2C</pre>
+        </div>
+
+        <!-- Tab 4: Guide -->
+        <div id="wokwi-content-guide" class="space-y-3 font-sans text-xs text-slate-300 hidden leading-relaxed">
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <h4 class="font-tactical font-bold text-white text-sm">3 Ways to Use Hardware Simulation in Your Hackathon Project:</h4>
+            <ol class="list-decimal list-inside space-y-2 text-slate-300">
+              <li>
+                <strong class="text-cyan-400">Live Dual-Screen Demo:</strong> Put this Web Dashboard on one half of your screen and your Wokwi simulation on the other. Run a disaster simulation on the web app, and show the judges how the field beacon terminal simultaneously flashes its red siren and updates its 16x2 LCD with the evacuation corridor!
+              </li>
+              <li>
+                <strong class="text-amber-400">Serial Command Downlink:</strong> In Wokwi's Serial Monitor, paste formatted commands like:
+                <code class="block mt-1 p-2 rounded bg-black font-mono text-[11px] text-emerald-400">ALERT:KOLKATA:CRITICAL:ROUTE 1 CLEAR</code>
+                The ESP32 firmware instantly triggers the piezo buzzer, illuminates the red alert LED, and prints the route on the LCD.
+              </li>
+              <li>
+                <strong class="text-emerald-400">Interactive Pushbutton Cycle:</strong> Click the blue push button on GPIO 32 in Wokwi to cycle between pre-programmed disaster scenarios (Tamluk, Digha, Kolkata, Darjeeling, Kalyani).
+              </li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+        <span class="text-[11px] font-mono text-slate-400">
+          Saved locally in <code>hardware/wokwi/</code> folder in this repository.
+        </span>
+        <button onclick="closeWokwiModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- JavaScript Logic -->
   <script>
     /**
@@ -714,55 +1481,372 @@
      * Frontend Controller & Data Mock Engine
      */
 
-    // Regions Database matching python script: scripts/simulate_disaster.py
+    // Comprehensive West Bengal Cities Database (30+ Municipalities across 5 Zones)
     const REGIONS_DATABASE = {
+      // Zone 1: Kolkata Metropolitan & Urban Corridor
+      kolkata: {
+        name: "Kolkata",
+        district: "Kolkata",
+        zone: "Zone 1: Kolkata Metro",
+        lat: 22.5726,
+        lon: 88.3639,
+        type: "urban",
+        defaultPrecip: 22.0,
+        defaultWind: 52.0
+      },
+      howrah: {
+        name: "Howrah",
+        district: "Howrah",
+        zone: "Zone 1: Kolkata Metro",
+        lat: 22.5958,
+        lon: 88.2636,
+        type: "urban",
+        defaultPrecip: 19.5,
+        defaultWind: 46.0
+      },
+      barasat: {
+        name: "Barasat",
+        district: "North 24 Parganas",
+        zone: "Zone 1: Kolkata Metro",
+        lat: 22.7233,
+        lon: 88.4812,
+        type: "urban",
+        defaultPrecip: 17.2,
+        defaultWind: 41.0
+      },
+      barrackpore: {
+        name: "Barrackpore",
+        district: "North 24 Parganas",
+        zone: "Zone 1: Kolkata Metro",
+        lat: 22.7667,
+        lon: 88.3667,
+        type: "riverine",
+        defaultPrecip: 16.5,
+        defaultWind: 38.0
+      },
+      serampore: {
+        name: "Serampore",
+        district: "Hooghly",
+        zone: "Zone 1: Kolkata Metro",
+        lat: 22.7500,
+        lon: 88.3400,
+        type: "riverine",
+        defaultPrecip: 15.8,
+        defaultWind: 36.0
+      },
+      chinsurah: {
+        name: "Chinsurah",
+        district: "Hooghly",
+        zone: "Zone 1: Kolkata Metro",
+        lat: 22.9011,
+        lon: 88.3965,
+        type: "riverine",
+        defaultPrecip: 15.0,
+        defaultWind: 35.0
+      },
+
+      // Zone 2: Sundarbans & Coastal Zone (Surge & Cyclone Hazard)
+      digha: {
+        name: "Digha",
+        district: "Purba Medinipur",
+        zone: "Zone 2: Coastal & Sundarbans",
+        lat: 21.6266,
+        lon: 87.5074,
+        type: "coastal",
+        defaultPrecip: 28.5,
+        defaultWind: 65.0
+      },
+      haldia: {
+        name: "Haldia",
+        district: "Purba Medinipur",
+        zone: "Zone 2: Coastal & Sundarbans",
+        lat: 22.0667,
+        lon: 88.0698,
+        type: "coastal",
+        defaultPrecip: 21.0,
+        defaultWind: 48.0
+      },
       tamluk: {
         name: "Tamluk",
         district: "Purba Medinipur",
+        zone: "Zone 2: Coastal & Sundarbans",
         lat: 22.2989,
         lon: 87.9255,
+        type: "coastal",
         defaultPrecip: 18.5,
-        defaultWind: 45.0,
+        defaultWind: 45.0
+      },
+      canning: {
+        name: "Canning",
+        district: "South 24 Parganas",
+        zone: "Zone 2: Coastal & Sundarbans",
+        lat: 22.3108,
+        lon: 88.6653,
+        type: "sundarbans",
+        defaultPrecip: 24.0,
+        defaultWind: 55.0
+      },
+      kakdwip: {
+        name: "Kakdwip",
+        district: "South 24 Parganas",
+        zone: "Zone 2: Coastal & Sundarbans",
+        lat: 21.8744,
+        lon: 88.1855,
+        type: "sundarbans",
+        defaultPrecip: 26.0,
+        defaultWind: 58.0
+      },
+      diamond_harbour: {
+        name: "Diamond Harbour",
+        district: "South 24 Parganas",
+        zone: "Zone 2: Coastal & Sundarbans",
+        lat: 22.1912,
+        lon: 88.1904,
+        type: "coastal",
+        defaultPrecip: 20.5,
+        defaultWind: 46.0
+      },
+      basirhat: {
+        name: "Basirhat",
+        district: "North 24 Parganas",
+        zone: "Zone 2: Coastal & Sundarbans",
+        lat: 22.6574,
+        lon: 88.8912,
+        type: "riverine",
+        defaultPrecip: 18.0,
+        defaultWind: 42.0
+      },
+
+      // Zone 3: North Bengal & Sub-Himalayan (Landslide & Flash Flood)
+      darjeeling: {
+        name: "Darjeeling",
+        district: "Darjeeling",
+        zone: "Zone 3: North Bengal & Hills",
+        lat: 27.0410,
+        lon: 88.2663,
+        type: "hilly",
+        defaultPrecip: 32.0,
+        defaultWind: 44.0
+      },
+      kalimpong: {
+        name: "Kalimpong",
+        district: "Kalimpong",
+        zone: "Zone 3: North Bengal & Hills",
+        lat: 27.0667,
+        lon: 88.4667,
+        type: "hilly",
+        defaultPrecip: 29.0,
+        defaultWind: 38.0
+      },
+      siliguri: {
+        name: "Siliguri",
+        district: "Darjeeling/Jalpaiguri",
+        zone: "Zone 3: North Bengal & Hills",
+        lat: 26.7271,
+        lon: 88.3953,
+        type: "plain",
+        defaultPrecip: 22.5,
+        defaultWind: 34.0
+      },
+      jalpaiguri: {
+        name: "Jalpaiguri",
+        district: "Jalpaiguri",
+        zone: "Zone 3: North Bengal & Hills",
+        lat: 26.5414,
+        lon: 88.7196,
+        type: "riverine",
+        defaultPrecip: 27.0,
+        defaultWind: 36.0
+      },
+      alipurduar: {
+        name: "Alipurduar",
+        district: "Alipurduar",
+        zone: "Zone 3: North Bengal & Hills",
+        lat: 26.4919,
+        lon: 89.5271,
+        type: "riverine",
+        defaultPrecip: 26.5,
+        defaultWind: 32.0
+      },
+      cooch_behar: {
+        name: "Cooch Behar",
+        district: "Cooch Behar",
+        zone: "Zone 3: North Bengal & Hills",
+        lat: 26.3239,
+        lon: 89.4511,
+        type: "riverine",
+        defaultPrecip: 24.0,
+        defaultWind: 30.0
+      },
+
+      // Zone 4: Central Bengal & Gangetic Riverine Basin
+      malda: {
+        name: "Malda",
+        district: "Malda",
+        zone: "Zone 4: Central Bengal",
+        lat: 25.0108,
+        lon: 88.1411,
+        type: "riverine",
+        defaultPrecip: 19.0,
+        defaultWind: 38.0
+      },
+      baharampur: {
+        name: "Baharampur",
+        district: "Murshidabad",
+        zone: "Zone 4: Central Bengal",
+        lat: 24.0988,
+        lon: 88.2514,
+        type: "riverine",
+        defaultPrecip: 16.0,
+        defaultWind: 35.0
+      },
+      krishnanagar: {
+        name: "Krishnanagar",
+        district: "Nadia",
+        zone: "Zone 4: Central Bengal",
+        lat: 23.4013,
+        lon: 88.5010,
+        type: "riverine",
+        defaultPrecip: 12.0,
+        defaultWind: 30.0
       },
       kalyani: {
         name: "Kalyani",
         district: "Nadia",
+        zone: "Zone 4: Central Bengal",
         lat: 22.9751,
         lon: 88.4345,
-        defaultPrecip: 8.2,
-        defaultWind: 28.0,
+        type: "plain",
+        defaultPrecip: 10.5,
+        defaultWind: 28.0
       },
-      kolkata: {
-        name: "Kolkata",
-        district: "Metropolitan Area",
-        lat: 22.5726,
-        lon: 88.3639,
-        defaultPrecip: 22.0,
-        defaultWind: 52.0,
+      balurghat: {
+        name: "Balurghat",
+        district: "Dakshin Dinajpur",
+        zone: "Zone 4: Central Bengal",
+        lat: 25.2215,
+        lon: 88.7645,
+        type: "riverine",
+        defaultPrecip: 14.5,
+        defaultWind: 26.0
       },
-      haldia: {
-        name: "Haldia",
-        district: "Coastal Industrial",
-        lat: 22.0667,
-        lon: 88.0698,
-        defaultPrecip: 16.4,
-        defaultWind: 42.0,
+      raiganj: {
+        name: "Raiganj",
+        district: "Uttar Dinajpur",
+        zone: "Zone 4: Central Bengal",
+        lat: 25.6177,
+        lon: 88.1255,
+        type: "riverine",
+        defaultPrecip: 15.0,
+        defaultWind: 28.0
+      },
+
+      // Zone 5: Western Rarh & Plateau Fringe
+      asansol: {
+        name: "Asansol",
+        district: "Paschim Bardhaman",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.6889,
+        lon: 86.9661,
+        type: "industrial",
+        defaultPrecip: 17.5,
+        defaultWind: 42.0
+      },
+      durgapur: {
+        name: "Durgapur",
+        district: "Paschim Bardhaman",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.5204,
+        lon: 87.3119,
+        type: "industrial",
+        defaultPrecip: 16.0,
+        defaultWind: 39.0
+      },
+      bardhaman: {
+        name: "Bardhaman",
+        district: "Purba Bardhaman",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.2324,
+        lon: 87.8615,
+        type: "plain",
+        defaultPrecip: 14.0,
+        defaultWind: 33.0
+      },
+      kharagpur: {
+        name: "Kharagpur",
+        district: "Paschim Medinipur",
+        zone: "Zone 5: Western Rarh",
+        lat: 22.3460,
+        lon: 87.2320,
+        type: "plain",
+        defaultPrecip: 15.5,
+        defaultWind: 37.0
+      },
+      medinipur: {
+        name: "Medinipur",
+        district: "Paschim Medinipur",
+        zone: "Zone 5: Western Rarh",
+        lat: 22.4257,
+        lon: 87.3199,
+        type: "riverine",
+        defaultPrecip: 17.0,
+        defaultWind: 38.0
+      },
+      bankura: {
+        name: "Bankura",
+        district: "Bankura",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.2324,
+        lon: 87.0715,
+        type: "upland",
+        defaultPrecip: 13.0,
+        defaultWind: 31.0
+      },
+      purulia: {
+        name: "Purulia",
+        district: "Purulia",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.3321,
+        lon: 86.3652,
+        type: "upland",
+        defaultPrecip: 12.0,
+        defaultWind: 30.0
+      },
+      suri: {
+        name: "Suri",
+        district: "Birbhum",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.9054,
+        lon: 87.5246,
+        type: "plain",
+        defaultPrecip: 14.0,
+        defaultWind: 32.0
+      },
+      bolpur: {
+        name: "Bolpur (Santiniketan)",
+        district: "Birbhum",
+        zone: "Zone 5: Western Rarh",
+        lat: 23.6693,
+        lon: 87.6833,
+        type: "plain",
+        defaultPrecip: 13.5,
+        defaultWind: 30.0
       }
     };
 
-    // Current State
+    // Current Application State
     let activeReport = null;
     let audioEnabled = true;
     let antigravityActive = false;
     let audioCtx = null;
 
-    // Initialize Web Audio API for tactical sci-fi HUD audio feedback
+    // Web Audio Synthesizer for high-tech HUD sound feedback
     function playBeep(frequency = 880, duration = 0.08, type = 'sine') {
       if (!audioEnabled) return;
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!audioCtx) audioCtx = new AudioContextClass();
         if (audioCtx.state === 'suspended') {
           audioCtx.resume();
         }
@@ -777,65 +1861,181 @@
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
       } catch (e) {
-        // AudioContext not allowed before user interaction
+        // Audio error handled silently
       }
     }
 
     function playTacticalChime() {
-      if (!audioEnabled) return;
-      playBeep(640, 0.05, 'triangle');
-      setTimeout(() => playBeep(880, 0.07, 'triangle'), 60);
-      setTimeout(() => playBeep(1200, 0.12, 'sine'), 130);
+      try {
+        if (!audioEnabled) return;
+        playBeep(640, 0.05, 'triangle');
+        setTimeout(() => playBeep(880, 0.07, 'triangle'), 60);
+        setTimeout(() => playBeep(1200, 0.12, 'sine'), 130);
+      } catch (e) {}
     }
 
     function toggleAudio() {
       audioEnabled = !audioEnabled;
-      document.getElementById('audio-icon-on').classList.toggle('hidden', !audioEnabled);
-      document.getElementById('audio-icon-off').classList.toggle('hidden', audioEnabled);
+      const onIcon = document.getElementById('audio-icon-on');
+      const offIcon = document.getElementById('audio-icon-off');
+      if (onIcon) onIcon.classList.toggle('hidden', !audioEnabled);
+      if (offIcon) offIcon.classList.toggle('hidden', audioEnabled);
       if (audioEnabled) playTacticalChime();
     }
 
-    // Live Clock Display
+    // Live Clock Display (Immediate + 1s Interval)
     function startClock() {
       const clockEl = document.getElementById('live-utc-clock');
-      setInterval(() => {
+      function update() {
         const now = new Date();
-        clockEl.textContent = `UTC ${now.toUTCString().slice(17, 25)} | IST ${now.toLocaleTimeString('en-IN', { hour12: false })}`;
-      }, 1000);
+        if (clockEl) {
+          clockEl.textContent = `UTC ${now.toUTCString().slice(17, 25)} | IST ${now.toLocaleTimeString('en-IN', { hour12: false })}`;
+        }
+      }
+      update();
+      setInterval(update, 1000);
+    }
+
+    // Filter Dropdown by Zone Pill
+    function filterZone(zoneKey, btnEl = null) {
+      const select = document.getElementById('municipality-select');
+      const optgroups = select.querySelectorAll('optgroup');
+      const pills = document.querySelectorAll('.zone-pill');
+      const label = document.getElementById('zone-filter-label');
+      playBeep(650, 0.03);
+
+      pills.forEach(pill => {
+        pill.classList.remove('bg-cyan-950/80', 'border-cyan-500', 'text-cyan-300', 'font-semibold');
+        pill.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+      });
+
+      // Highlight clicked pill safely
+      const target = btnEl || (typeof window !== 'undefined' && window.event ? window.event.target : null);
+      if (target && target.classList) {
+        target.classList.remove('bg-slate-900', 'border-slate-800', 'text-slate-400');
+        target.classList.add('bg-cyan-950/80', 'border-cyan-500', 'text-cyan-300', 'font-semibold');
+      }
+
+      if (zoneKey === 'all') {
+        optgroups.forEach(og => og.style.display = '');
+        if (label) label.textContent = "ALL WEST BENGAL (30 CITIES)";
+      } else {
+        let firstVisible = null;
+        optgroups.forEach(og => {
+          if (og.label.includes(zoneKey)) {
+            og.style.display = '';
+            if (!firstVisible) firstVisible = og.querySelector('option');
+          } else {
+            og.style.display = 'none';
+          }
+        });
+        if (label) label.textContent = zoneKey.toUpperCase();
+        if (firstVisible) {
+          select.value = firstVisible.value;
+        }
+      }
+    }
+
+    // Quick Search Filter for all West Bengal Cities
+    function filterCitiesBySearch() {
+      const input = document.getElementById('city-search-input');
+      const term = input.value.trim().toLowerCase();
+      const select = document.getElementById('municipality-select');
+      const options = select.querySelectorAll('option');
+      const optgroups = select.querySelectorAll('optgroup');
+
+      if (!term) {
+        options.forEach(opt => opt.style.display = '');
+        optgroups.forEach(og => og.style.display = '');
+        return;
+      }
+
+      let matchCount = 0;
+      let firstMatch = null;
+
+      optgroups.forEach(og => {
+        let groupHasMatch = false;
+        og.querySelectorAll('option').forEach(opt => {
+          const region = REGIONS_DATABASE[opt.value];
+          const text = (opt.textContent + " " + (region ? region.district + " " + region.zone : "")).toLowerCase();
+          if (text.includes(term)) {
+            opt.style.display = '';
+            groupHasMatch = true;
+            matchCount++;
+            if (!firstMatch) firstMatch = opt;
+          } else {
+            opt.style.display = 'none';
+          }
+        });
+        og.style.display = groupHasMatch ? '' : 'none';
+      });
+
+      if (firstMatch && matchCount === 1) {
+        select.value = firstMatch.value;
+      }
     }
 
     // Generate Simulation Report matching simulate_disaster.py exactly
     function computeDisasterReport(regionKey, precip, wind) {
       const region = REGIONS_DATABASE[regionKey] || REGIONS_DATABASE['tamluk'];
+      const geoType = region.type || "plain";
 
       let threatLevel, routes, boats, sandbags, hazardScore;
 
-      // Exact Python logic:
-      // if precip > 15.0 or wind > 40.0:
-      //   CRITICAL - Severe Waterlogging & Inundation Risk
-      // elif precip > 5.0 or wind > 25.0:
-      //   MODERATE - Localized Drainage Congestion
-      // else:
-      //   LOW - Standard Monitoring Active
+      // Exact Python logic with geographical nuances:
       if (precip > 15.0 || wind > 40.0) {
-        threatLevel = "CRITICAL - Severe Waterlogging & Inundation Risk";
-        routes = [
-          "Route 1 (Elevated Bypass - Clear)",
-          "Route 4 (Expressway Flyover - Open)",
-          "Route 2 (Low-lying - BLOCKED)"
-        ];
-        boats = 25;
-        sandbags = 5000;
-        hazardScore = Math.min(96, Math.round(65 + (precip * 0.8) + (wind * 0.3)));
+        if (geoType === "hilly") {
+          threatLevel = "CRITICAL - Severe Landslide & Mountain Highway Severance";
+          routes = [
+            "NH-10 Hill Bypass (BLOCKED by Landslide)",
+            "Ridge Evacuation Corridor 1 - Clear",
+            "Toy Train Track (Closed due to Soil Slump)"
+          ];
+          hazardScore = 94;
+        } else if (geoType === "coastal" || geoType === "sundarbans") {
+          threatLevel = "CRITICAL - Severe Storm Surge & Tidal Embankment Breach";
+          routes = [
+            "Inland Elevated Highway (Clear)",
+            "Coastal Marine Drive (SUBMERGED - BLOCKED)",
+            "Ferry Terminal Link (Suspended)"
+          ];
+          hazardScore = 96;
+        } else {
+          threatLevel = "CRITICAL - Severe Waterlogging & Inundation Risk";
+          routes = [
+            "Route 1 (Elevated Bypass - Clear)",
+            "Route 4 (Expressway Flyover - Open)",
+            "Route 2 (Low-lying - BLOCKED)"
+          ];
+          hazardScore = Math.min(96, Math.round(65 + (precip * 0.8) + (wind * 0.3)));
+        }
+        boats = (geoType === "coastal" || geoType === "sundarbans") ? 35 : 25;
+        sandbags = (geoType === "coastal" || geoType === "sundarbans" || geoType === "riverine") ? 6500 : 5000;
       } else if (precip > 5.0 || wind > 25.0) {
-        threatLevel = "MODERATE - Localized Drainage Congestion";
-        routes = [
-          "Primary arterial roads operational",
-          "Speed restrictions on rural routes"
-        ];
-        boats = 10;
-        sandbags = 2000;
-        hazardScore = Math.min(60, Math.round(30 + (precip * 1.5) + (wind * 0.5)));
+        if (geoType === "hilly") {
+          threatLevel = "MODERATE - Hill Slope Saturation & Mudslide Warning";
+          routes = [
+            "Hill cart road operational under speed limit",
+            "Vulnerable slope diversions enforced"
+          ];
+          hazardScore = 58;
+        } else if (geoType === "coastal" || geoType === "sundarbans") {
+          threatLevel = "MODERATE - High Tide Warning & Coastal Drainage Backflow";
+          routes = [
+            "Primary arterial roads operational",
+            "Low-lying embankment ramps restricted"
+          ];
+          hazardScore = 55;
+        } else {
+          threatLevel = "MODERATE - Localized Drainage Congestion";
+          routes = [
+            "Primary arterial roads operational",
+            "Speed restrictions on rural routes"
+          ];
+          hazardScore = Math.min(60, Math.round(30 + (precip * 1.5) + (wind * 0.5)));
+        }
+        boats = (geoType === "coastal" || geoType === "sundarbans") ? 15 : 10;
+        sandbags = (geoType === "coastal" || geoType === "riverine") ? 2500 : 2000;
       } else {
         threatLevel = "LOW - Standard Monitoring Active";
         routes = [
@@ -849,6 +2049,7 @@
       return {
         region: region.name,
         district: region.district,
+        zone: region.zone,
         coordinates: {
           latitude: region.lat,
           longitude: region.lon
@@ -877,25 +2078,71 @@
       };
     }
 
-    // Attempt Live Open-Meteo API Fetch (with automatic graceful fallback)
+    // Multi-Provider Authenticated Weather Telemetry Downlink (Open-Meteo, OpenWeatherMap, WeatherAPI)
     async function fetchWeatherTelemetry(lat, lon, fallbackPrecip, fallbackWind) {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=precipitation,wind_speed_10m`;
+      const provider = localStorage.getItem('weather_provider') || 'openmeteo';
+      const apiKey = localStorage.getItem('weather_api_key') || '';
+      
+      const fetchOptions = {};
+      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+        fetchOptions.signal = AbortSignal.timeout(3500);
+      }
+
       try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(3000) });
-        if (!response.ok) throw new Error("Network status: " + response.status);
-        const data = await response.json();
-        const current = data.current || {};
-        return {
-          precipitation_mm: current.precipitation !== undefined ? current.precipitation : fallbackPrecip,
-          wind_speed_kmh: current.wind_speed_10m !== undefined ? current.wind_speed_10m : fallbackWind,
-          source: "Live Satellite Stream"
-        };
+        if (provider === 'openweathermap') {
+          if (!apiKey) throw new Error("Missing OpenWeatherMap API Token. Configure in Data Source modal.");
+          const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${encodeURIComponent(apiKey)}&units=metric`;
+          const res = await fetch(url, fetchOptions);
+          if (!res.ok) throw new Error(`OpenWeatherMap HTTP ${res.status}: ${res.statusText}`);
+          const data = await res.json();
+          const rainMm = (data.rain && data.rain['1h']) ? data.rain['1h'] : ((data.rain && data.rain['3h']) ? data.rain['3h'] / 3 : 0.0);
+          const windKmh = data.wind && data.wind.speed !== undefined ? (data.wind.speed * 3.6) : fallbackWind;
+          return {
+            precipitation_mm: parseFloat(rainMm.toFixed(1)),
+            wind_speed_kmh: parseFloat(windKmh.toFixed(1)),
+            temperature_c: data.main ? data.main.temp : null,
+            source: "OpenWeatherMap (Authenticated Token)",
+            authenticated: true
+          };
+        } else if (provider === 'weatherapi') {
+          if (!apiKey) throw new Error("Missing WeatherAPI.com Token. Configure in Data Source modal.");
+          const url = `https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(apiKey)}&q=${lat},${lon}`;
+          const res = await fetch(url, fetchOptions);
+          if (!res.ok) throw new Error(`WeatherAPI HTTP ${res.status}: ${res.statusText}`);
+          const data = await res.json();
+          const current = data.current || {};
+          return {
+            precipitation_mm: parseFloat((current.precip_mm || 0.0).toFixed(1)),
+            wind_speed_kmh: parseFloat((current.wind_kph || fallbackWind).toFixed(1)),
+            temperature_c: current.temp_c,
+            source: "WeatherAPI.com (Real-Time Radar)",
+            authenticated: true
+          };
+        } else {
+          // Open-Meteo (Scientific Open Data from ECMWF / NOAA / DWD)
+          let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=precipitation,wind_speed_10m,temperature_2m`;
+          if (apiKey) {
+            url = `https://customer-api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=precipitation,wind_speed_10m,temperature_2m&apikey=${encodeURIComponent(apiKey)}`;
+          }
+          const res = await fetch(url, fetchOptions);
+          if (!res.ok) throw new Error(`Open-Meteo HTTP ${res.status}: ${res.statusText}`);
+          const data = await res.json();
+          const current = data.current || {};
+          return {
+            precipitation_mm: current.precipitation !== undefined ? parseFloat(current.precipitation.toFixed(1)) : fallbackPrecip,
+            wind_speed_kmh: current.wind_speed_10m !== undefined ? parseFloat(current.wind_speed_10m.toFixed(1)) : fallbackWind,
+            temperature_c: current.temperature_2m,
+            source: apiKey ? "Open-Meteo Commercial (Token Auth)" : "Open-Meteo (Live ECMWF/NOAA Downlink)",
+            authenticated: Boolean(apiKey)
+          };
+        }
       } catch (err) {
-        console.warn("Live Open-Meteo fetch failed/offline, using fallback dummy telemetry:", err);
+        console.warn(`[Telemetry Downlink Warning] ${provider} query failed:`, err);
         return {
           precipitation_mm: fallbackPrecip,
           wind_speed_kmh: fallbackWind,
-          source: "Offline Telemetry Fallback"
+          source: `Offline Fallback (${provider})`,
+          error: err.message
         };
       }
     }
@@ -975,7 +2222,7 @@
       // 2. Live Telemetry Readout
       document.getElementById('telemetry-precipitation').textContent = report.live_telemetry.precipitation_mm.toFixed(1);
       document.getElementById('telemetry-wind').textContent = report.live_telemetry.wind_speed_kmh.toFixed(1);
-      document.getElementById('telemetry-region-name').textContent = `${report.region} (${report.district})`;
+      document.getElementById('telemetry-region-name').textContent = `${report.region} (${report.district}) • ${report.zone}`;
       document.getElementById('telemetry-coordinates').textContent = `${report.coordinates.latitude}° N, ${report.coordinates.longitude}° E`;
       
       const precipStatus = document.getElementById('telemetry-precip-status');
@@ -1053,10 +2300,34 @@
       updateChecklistProgress();
 
       // Update footer info
-      document.getElementById('footer-station-detail').textContent = `${report.region} Sector Command Hub | Coordinates ${report.coordinates.latitude}° N, ${report.coordinates.longitude}° E`;
+      document.getElementById('footer-station-detail').textContent = `${report.region} Sector Command Hub | Coordinates ${report.coordinates.latitude}° N, ${report.coordinates.longitude}° E | ${report.zone}`;
+
+      // Update Panel 1 "View Threat Places" button & Statewide Distribution counts
+      const viewPlacesBtn = document.getElementById('view-threat-places-btn');
+      const viewPlacesText = document.getElementById('view-threat-places-text');
+      const dist = computeStatewideThreatDistribution();
+      updateThreatCountBadges(dist);
+
+      if (viewPlacesBtn && viewPlacesText) {
+        if (isCritical) {
+          viewPlacesBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-rose-950/80 text-rose-300 border border-rose-500/60 hover:bg-rose-900 shadow-[0_0_12px_rgba(244,63,94,0.3)] cursor-pointer';
+          viewPlacesText.textContent = `View All ${dist.critical.length} Places in Critical Zone`;
+        } else if (isModerate) {
+          viewPlacesBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-amber-950/80 text-amber-300 border border-amber-500/60 hover:bg-amber-900 shadow-[0_0_12px_rgba(245,158,11,0.3)] cursor-pointer';
+          viewPlacesText.textContent = `View All ${dist.moderate.length} Places in Moderate Zone`;
+        } else {
+          viewPlacesBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 hover:bg-emerald-900 shadow-[0_0_12px_rgba(16,185,129,0.3)] cursor-pointer';
+          viewPlacesText.textContent = `View All ${dist.low.length} Places in Low Zone`;
+        }
+      }
 
       // Update JSON preview modal content
       document.getElementById('json-modal-content').textContent = JSON.stringify(report, null, 2);
+
+      // Synchronize Virtual Edge IoT Field Beacon (ESP32 Terminal)
+      if (typeof updateEdgeHardwareBeacon === 'function') {
+        updateEdgeHardwareBeacon(report);
+      }
     }
 
     // Interactive Checklist Progress Counter
@@ -1115,8 +2386,9 @@
     // Quick Select Region Handler
     function quickSelectRegion(regionKey) {
       const select = document.getElementById('municipality-select');
-      select.value = regionKey;
+      if (select) select.value = regionKey;
       playBeep(700, 0.04);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       executeSimulation();
     }
 
@@ -1184,9 +2456,15 @@
         wind = 12.0;
       } else {
         // 'live' mode: Attempt live weather fetch, with fallback to default
-        const live = await fetchWeatherTelemetry(regionData.lat, regionData.lon, regionData.defaultPrecip, regionData.defaultWind);
-        precip = live.precipitation_mm;
-        wind = live.wind_speed_kmh;
+        try {
+          const live = await fetchWeatherTelemetry(regionData.lat, regionData.lon, regionData.defaultPrecip, regionData.defaultWind);
+          precip = (live && live.precipitation_mm !== undefined) ? live.precipitation_mm : (regionData.defaultPrecip || 18.5);
+          wind = (live && live.wind_speed_kmh !== undefined) ? live.wind_speed_kmh : (regionData.defaultWind || 45.0);
+        } catch (err) {
+          console.warn("Live weather fallback:", err);
+          precip = regionData.defaultPrecip || 18.5;
+          wind = regionData.defaultWind || 45.0;
+        }
       }
 
       // Compute Report
@@ -1241,17 +2519,1150 @@
       });
     }
 
-    // Close modal on Escape
+    // ==============================================================
+    // STATEWIDE THREAT MATRIX CONTROLLER & INTERACTIVE ZONE EXPLORER
+    // ==============================================================
+
+    let currentThreatFilter = 'critical';
+
+    // Helper: Compute specific threat details for any municipality
+    function getPlaceThreatDetails(key, region, scenario = 'live') {
+      const geoType = region.type || "plain";
+      let precip, wind, category, threatText, hazardScore, riskIcon, riskLabel;
+
+      if (scenario === "critical") {
+        if (["coastal", "sundarbans", "hilly", "urban"].includes(geoType)) {
+          precip = (geoType === "coastal" || geoType === "sundarbans") ? 28.5 : 24.0;
+          wind = (geoType === "coastal" || geoType === "sundarbans") ? 62.0 : 48.0;
+          category = "critical";
+          hazardScore = 95;
+        } else if (["riverine", "industrial"].includes(geoType)) {
+          precip = 18.0;
+          wind = 42.0;
+          category = "critical";
+          hazardScore = 88;
+        } else {
+          precip = 14.0;
+          wind = 32.0;
+          category = "moderate";
+          hazardScore = 58;
+        }
+      } else if (scenario === "moderate") {
+        if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
+          precip = 12.0;
+          wind = 32.0;
+          category = "moderate";
+          hazardScore = 58;
+        } else if (["riverine", "urban", "industrial"].includes(geoType)) {
+          precip = 9.0;
+          wind = 28.0;
+          category = "moderate";
+          hazardScore = 52;
+        } else {
+          precip = 3.5;
+          wind = 16.0;
+          category = "low";
+          hazardScore = 20;
+        }
+      } else if (scenario === "low") {
+        precip = 1.2;
+        wind = 12.0;
+        category = "low";
+        hazardScore = 15;
+      } else {
+        // Live / Regional Baseline
+        if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
+          precip = (geoType === "hilly") ? 32.0 : 22.0;
+          wind = (geoType === "hilly") ? 42.0 : 48.0;
+          category = "critical";
+          hazardScore = 94;
+        } else if (["urban", "riverine", "industrial"].includes(geoType)) {
+          precip = 10.5;
+          wind = 28.0;
+          category = "moderate";
+          hazardScore = 55;
+        } else {
+          precip = 2.5;
+          wind = 14.0;
+          category = "low";
+          hazardScore = 18;
+        }
+      }
+
+      // Contextual Hazard Assessment
+      if (geoType === "hilly") {
+        threatText = (category === "critical") ? "Severe Landslide & Mountain Highway Severance" : (category === "moderate" ? "Hill Slope Saturation & Mudslide Warning" : "Slope Runoff Normal");
+        riskIcon = "🏔️";
+        riskLabel = "Himalayan Ridge Slope";
+      } else if (geoType === "coastal" || geoType === "sundarbans") {
+        threatText = (category === "critical") ? "Severe Storm Surge & Tidal Embankment Breach" : (category === "moderate" ? "High Tide Warning & Drainage Backflow" : "Normal Coastal Tidal Cycle");
+        riskIcon = "🌊";
+        riskLabel = (geoType === "sundarbans") ? "Sundarbans Delta Estuary" : "Bay of Bengal Coastal Front";
+      } else if (geoType === "urban") {
+        threatText = (category === "critical") ? "Severe Urban Waterlogging & Underpass Inundation" : (category === "moderate" ? "Localized Urban Drainage Congestion" : "Normal Metropolitan Drainage");
+        riskIcon = "🏙️";
+        riskLabel = "Metropolitan Urban Hub";
+      } else if (geoType === "riverine") {
+        threatText = (category === "critical") ? "Riverine Flash Inundation & Embankment Erosion" : (category === "moderate" ? "River Spate Watch & Floodplain Siltation" : "Normal River Discharge");
+        riskIcon = "🌧️";
+        riskLabel = "Gangetic / Teesta Riverine Basin";
+      } else if (geoType === "industrial") {
+        threatText = (category === "critical") ? "Industrial Corridor Flooding & Substation Risk" : (category === "moderate" ? "Industrial Runoff Surcharge" : "Normal Industrial Operations");
+        riskIcon = "🏭";
+        riskLabel = "Industrial & Mining Belt";
+      } else if (geoType === "upland") {
+        threatText = (category === "critical") ? "Rarh Upland Gully Erosion & Flash Torrent" : (category === "moderate" ? "Plateau Runoff Advisory" : "Low Risk Plateau");
+        riskIcon = "🏜️";
+        riskLabel = "Rarh Upland & Chota Nagpur Fringe";
+      } else {
+        threatText = (category === "critical") ? "Alluvial Plain Waterlogging & Crop Siltation" : (category === "moderate" ? "Localized Agricultural Runoff" : "Standard Agricultural Basin Normal");
+        riskIcon = "🌾";
+        riskLabel = "Alluvial Agricultural Plain";
+      }
+
+      return {
+        key,
+        name: region.name,
+        district: region.district,
+        zone: region.zone,
+        lat: region.lat,
+        lon: region.lon,
+        geoType,
+        riskIcon,
+        riskLabel,
+        precip: parseFloat(precip.toFixed(1)),
+        wind: parseFloat(wind.toFixed(1)),
+        category,
+        threatText,
+        hazardScore
+      };
+    }
+
+    // Compute distribution of all 34 municipalities
+    function computeStatewideThreatDistribution(scenario = null) {
+      if (!scenario) {
+        const scenarioSelect = document.getElementById('simulation-scenario');
+        scenario = scenarioSelect ? scenarioSelect.value : 'live';
+      }
+
+      const dist = {
+        critical: [],
+        moderate: [],
+        low: [],
+        all: []
+      };
+
+      for (const [key, region] of Object.entries(REGIONS_DATABASE)) {
+        const details = getPlaceThreatDetails(key, region, scenario);
+        dist[details.category].push(details);
+        dist.all.push(details);
+      }
+
+      return dist;
+    }
+
+    // Update all count badges across the page
+    function updateThreatCountBadges(dist) {
+      const cCount = dist.critical.length;
+      const mCount = dist.moderate.length;
+      const lCount = dist.low.length;
+      const aCount = dist.all.length;
+
+      // Matrix Tabs
+      const elTabC = document.getElementById('tab-count-critical');
+      const elTabM = document.getElementById('tab-count-moderate');
+      const elTabL = document.getElementById('tab-count-low');
+      const elTabA = document.getElementById('tab-count-all');
+      if (elTabC) elTabC.textContent = cCount;
+      if (elTabM) elTabM.textContent = mCount;
+      if (elTabL) elTabL.textContent = lCount;
+      if (elTabA) elTabA.textContent = aCount;
+
+      // Quick Badges in Header
+      const elQkC = document.getElementById('quick-count-critical');
+      const elQkM = document.getElementById('quick-count-moderate');
+      const elQkL = document.getElementById('quick-count-low');
+      if (elQkC) elQkC.textContent = cCount;
+      if (elQkM) elQkM.textContent = mCount;
+      if (elQkL) elQkL.textContent = lCount;
+    }
+
+    // Interactive Category Switcher (Critical, Moderate, Low, All)
+    function selectThreatFilter(category, shouldScroll = false) {
+      currentThreatFilter = category;
+      playBeep(category === 'critical' ? 880 : (category === 'moderate' ? 680 : 520), 0.04);
+
+      // 1. Update Tabs styling
+      const tabs = {
+        critical: document.getElementById('matrix-tab-critical'),
+        moderate: document.getElementById('matrix-tab-moderate'),
+        low: document.getElementById('matrix-tab-low'),
+        all: document.getElementById('matrix-tab-all')
+      };
+
+      // Reset all tabs
+      for (const [key, tab] of Object.entries(tabs)) {
+        if (!tab) continue;
+        tab.className = 'threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-slate-950/80 border-slate-800 text-slate-300 hover:border-slate-700 cursor-pointer';
+      }
+
+      // Highlight active tab
+      const activeTab = tabs[category];
+      if (activeTab) {
+        if (category === 'critical') {
+          activeTab.className = 'threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-rose-950/50 border-rose-500/80 text-rose-200 shadow-[0_0_20px_rgba(244,63,94,0.3)] ring-1 ring-rose-500/50 cursor-pointer';
+        } else if (category === 'moderate') {
+          activeTab.className = 'threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-amber-950/50 border-amber-500/80 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.3)] ring-1 ring-amber-500/50 cursor-pointer';
+        } else if (category === 'low') {
+          activeTab.className = 'threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-emerald-950/50 border-emerald-500/80 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/50 cursor-pointer';
+        } else {
+          activeTab.className = 'threat-filter-tab group p-3 rounded-xl border text-left transition-all duration-200 bg-cyan-950/50 border-cyan-500/80 text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] ring-1 ring-cyan-500/50 cursor-pointer';
+        }
+      }
+
+      // 2. Update Quick Filter Buttons in Control Deck
+      const quickBtns = {
+        critical: document.getElementById('quick-threat-btn-critical'),
+        moderate: document.getElementById('quick-threat-btn-moderate'),
+        low: document.getElementById('quick-threat-btn-low'),
+        all: document.getElementById('quick-threat-btn-all')
+      };
+
+      for (const [key, btn] of Object.entries(quickBtns)) {
+        if (!btn) continue;
+        if (key === category) {
+          if (key === 'critical') {
+            btn.className = 'quick-threat-btn px-2.5 py-1 rounded-lg bg-rose-950/90 border border-rose-500 text-rose-200 font-bold text-[11px] shadow-[0_0_15px_rgba(244,63,94,0.35)]';
+          } else if (key === 'moderate') {
+            btn.className = 'quick-threat-btn px-2.5 py-1 rounded-lg bg-amber-950/90 border border-amber-500 text-amber-200 font-bold text-[11px] shadow-[0_0_15px_rgba(245,158,11,0.35)]';
+          } else if (key === 'low') {
+            btn.className = 'quick-threat-btn px-2.5 py-1 rounded-lg bg-emerald-950/90 border border-emerald-500 text-emerald-200 font-bold text-[11px] shadow-[0_0_15px_rgba(16,185,129,0.35)]';
+          } else {
+            btn.className = 'quick-threat-btn px-2.5 py-1 rounded-lg bg-cyan-950/90 border border-cyan-500 text-cyan-200 font-bold text-[11px] shadow-[0_0_15px_rgba(6,182,212,0.35)]';
+          }
+        } else {
+          btn.className = 'quick-threat-btn px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 text-[11px] hover:border-slate-700 hover:text-white transition';
+        }
+      }
+
+      // 3. Update Status Banner & Ambient Glow
+      const banner = document.getElementById('matrix-status-banner');
+      const bannerText = document.getElementById('matrix-banner-text');
+      const glow = document.getElementById('matrix-ambient-glow');
+      const dist = computeStatewideThreatDistribution();
+
+      if (category === 'critical') {
+        if (glow) glow.className = 'absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl pointer-events-none bg-rose-600/15 transition-colors duration-500';
+        if (banner) banner.className = 'mt-5 p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 flex flex-wrap items-center justify-between gap-3 text-xs font-mono transition-all duration-300';
+        if (bannerText) bannerText.innerHTML = `Showing <strong class="text-rose-300 font-bold">${dist.critical.length} Municipalities</strong> in <strong class="text-rose-400 font-bold">CRITICAL ZONE</strong>. Severe storm surge, flooding, or landslide risk active.`;
+      } else if (category === 'moderate') {
+        if (glow) glow.className = 'absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl pointer-events-none bg-amber-600/15 transition-colors duration-500';
+        if (banner) banner.className = 'mt-5 p-3 rounded-xl bg-amber-950/40 border border-amber-500/40 flex flex-wrap items-center justify-between gap-3 text-xs font-mono transition-all duration-300';
+        if (bannerText) bannerText.innerHTML = `Showing <strong class="text-amber-300 font-bold">${dist.moderate.length} Municipalities</strong> in <strong class="text-amber-400 font-bold">MODERATE ZONE</strong>. Drainage congestion, embankment watch & high tide advisories active.`;
+      } else if (category === 'low') {
+        if (glow) glow.className = 'absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl pointer-events-none bg-emerald-600/15 transition-colors duration-500';
+        if (banner) banner.className = 'mt-5 p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex flex-wrap items-center justify-between gap-3 text-xs font-mono transition-all duration-300';
+        if (bannerText) bannerText.innerHTML = `Showing <strong class="text-emerald-300 font-bold">${dist.low.length} Municipalities</strong> in <strong class="text-emerald-400 font-bold">LOW HAZARD ZONE</strong>. Normal river discharges, trace precipitation & clear routes.`;
+      } else {
+        if (glow) glow.className = 'absolute -right-24 -top-24 w-80 h-80 rounded-full blur-3xl pointer-events-none bg-cyan-600/15 transition-colors duration-500';
+        if (banner) banner.className = 'mt-5 p-3 rounded-xl bg-cyan-950/40 border border-cyan-500/40 flex flex-wrap items-center justify-between gap-3 text-xs font-mono transition-all duration-300';
+        if (bannerText) bannerText.innerHTML = `Showing all <strong class="text-cyan-300 font-bold">${dist.all.length} Municipalities</strong> across all 5 geographical zones of West Bengal.`;
+      }
+
+      // 4. Render Cards
+      renderThreatMatrixCards();
+
+      // 5. Scroll smoothly to matrix if requested
+      if (shouldScroll) {
+        const matrixSection = document.getElementById('statewide-threat-matrix');
+        if (matrixSection) {
+          matrixSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    // Render Cards in the Matrix Grid
+    function renderThreatMatrixCards() {
+      const container = document.getElementById('threat-matrix-cards');
+      if (!container) return;
+
+      const searchInput = document.getElementById('matrix-search-input');
+      const subzoneSelect = document.getElementById('matrix-subzone-select');
+      const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+      const selectedSubzone = subzoneSelect ? subzoneSelect.value : 'all';
+
+      const dist = computeStatewideThreatDistribution();
+      updateThreatCountBadges(dist);
+
+      let list = (currentThreatFilter === 'all') ? dist.all : dist[currentThreatFilter] || dist.all;
+
+      // Apply search filter
+      if (searchTerm) {
+        list = list.filter(item => {
+          const matchStr = (item.name + " " + item.district + " " + item.zone + " " + item.riskLabel + " " + item.threatText).toLowerCase();
+          return matchStr.includes(searchTerm);
+        });
+      }
+
+      // Apply subzone filter
+      if (selectedSubzone !== 'all') {
+        list = list.filter(item => item.zone.includes(selectedSubzone));
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-500 font-mono text-xs">
+            <svg class="w-8 h-8 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            No places matching your filter in this category. Try switching category or resetting search.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(place => {
+        const isCrit = place.category === 'critical';
+        const isMod = place.category === 'moderate';
+
+        // Card styling based on threat category
+        const borderClass = isCrit 
+          ? 'border-rose-500/50 hover:border-rose-400 bg-gradient-to-b from-rose-950/30 to-slate-950/90 shadow-[0_0_15px_rgba(244,63,94,0.12)]'
+          : (isMod 
+              ? 'border-amber-500/50 hover:border-amber-400 bg-gradient-to-b from-amber-950/20 to-slate-950/90 shadow-[0_0_15px_rgba(245,158,11,0.12)]'
+              : 'border-emerald-500/40 hover:border-emerald-400 bg-gradient-to-b from-emerald-950/20 to-slate-950/90 shadow-[0_0_15px_rgba(16,185,129,0.1)]');
+
+        const badgeHtml = isCrit
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-rose-950/90 border border-rose-500 text-rose-300 flex items-center gap-1">
+               <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span> CRITICAL
+             </span>`
+          : (isMod
+              ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-amber-950/90 border border-amber-500 text-amber-300 flex items-center gap-1">
+                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> MODERATE
+                 </span>`
+              : `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-950/90 border border-emerald-500 text-emerald-300 flex items-center gap-1">
+                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> LOW HAZARD
+                 </span>`);
+
+        const barColor = isCrit
+          ? 'bg-gradient-to-r from-amber-500 to-rose-500'
+          : (isMod
+              ? 'bg-gradient-to-r from-yellow-400 to-amber-500'
+              : 'bg-gradient-to-r from-teal-400 to-emerald-500');
+
+        const scoreColor = isCrit ? 'text-rose-400' : (isMod ? 'text-amber-400' : 'text-emerald-400');
+
+        return `
+          <div onclick="quickSelectRegion('${place.key}')" class="group relative rounded-2xl p-4 sm:p-5 border ${borderClass} transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col justify-between">
+            
+            <div>
+              <!-- Header: Name & Badge -->
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h3 class="font-tactical font-bold text-lg sm:text-xl text-white group-hover:text-cyan-300 transition-colors">
+                    ${place.name}
+                  </h3>
+                  <p class="text-[11px] font-mono text-slate-400">
+                    ${place.district} • <span class="text-cyan-400">${place.zone.split(':')[0]}</span>
+                  </p>
+                </div>
+                ${badgeHtml}
+              </div>
+
+              <!-- Risk Profile Tag -->
+              <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 mb-2.5">
+                <span>${place.riskIcon}</span>
+                <span>${place.riskLabel}</span>
+              </div>
+
+              <!-- Threat Summary -->
+              <p class="text-xs text-slate-300 leading-snug line-clamp-2 mb-3 font-sans">
+                ${place.threatText}
+              </p>
+            </div>
+
+            <!-- Bottom Stats & Meter -->
+            <div class="pt-3 border-t border-slate-800/80 space-y-2.5">
+              
+              <!-- Telemetry Pills -->
+              <div class="grid grid-cols-2 gap-2 text-[11px] font-mono">
+                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <span class="text-slate-500">PRECIP</span>
+                  <span class="text-cyan-300 font-bold">${place.precip} mm</span>
+                </div>
+                <div class="p-1.5 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center justify-between">
+                  <span class="text-slate-500">WIND</span>
+                  <span class="text-teal-300 font-bold">${place.wind} km/h</span>
+                </div>
+              </div>
+
+              <!-- Hazard Score Bar -->
+              <div>
+                <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+                  <span class="text-slate-500">HAZARD INDEX</span>
+                  <span class="font-bold ${scoreColor}">${place.hazardScore} / 100</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div class="h-full rounded-full ${barColor}" style="width: ${place.hazardScore}%"></div>
+                </div>
+              </div>
+
+              <!-- Action Link -->
+              <div class="pt-1 flex items-center justify-between text-[11px] font-mono text-cyan-400 group-hover:text-cyan-300 transition-colors">
+                <span class="font-semibold uppercase tracking-wider">Inspect Telemetry</span>
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Dropdown Scenario Change Handler
+    function onScenarioChange() {
+      const scenarioSelect = document.getElementById('simulation-scenario');
+      const scenario = scenarioSelect ? scenarioSelect.value : 'live';
+      const label = document.getElementById('matrix-active-mode-label');
+
+      if (label) {
+        if (scenario === 'critical') label.textContent = 'CRITICAL SURGE PROTOCOL';
+        else if (scenario === 'moderate') label.textContent = 'MONSOON ADVISORY WATCH';
+        else if (scenario === 'low') label.textContent = 'LOW HAZARD NORMAL';
+        else label.textContent = 'LIVE METEO MATRIX';
+      }
+
+      // If user selected critical, moderate, or low from the dropdown, switch to that category view
+      if (scenario === 'critical' || scenario === 'moderate' || scenario === 'low') {
+        selectThreatFilter(scenario);
+      } else {
+        renderThreatMatrixCards();
+      }
+    }
+
+    // Scroll directly to Statewide Matrix with current city threat pre-selected
+    function scrollToThreatMatrix() {
+      let targetThreat = 'critical';
+      if (activeReport && activeReport.threat_assessment) {
+        if (activeReport.threat_assessment.startsWith('CRITICAL')) targetThreat = 'critical';
+        else if (activeReport.threat_assessment.startsWith('MODERATE')) targetThreat = 'moderate';
+        else targetThreat = 'low';
+      }
+      selectThreatFilter(targetThreat, true);
+    }
+
+    // ==============================================================
+    // TELEMETRY SOURCES & API TOKEN CONFIG CONTROLLER
+    // ==============================================================
+
+    function updateProviderBadges() {
+      const provider = localStorage.getItem('weather_provider') || 'openmeteo';
+      const apiKey = localStorage.getItem('weather_api_key') || '';
+      const badge = document.getElementById('header-api-badge');
+      const footerStation = document.getElementById('footer-station-detail');
+
+      if (badge) {
+        if (provider === 'openweathermap') {
+          badge.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600';
+          badge.textContent = apiKey ? 'OPENWEATHER [AUTH]' : 'OPENWEATHER [NO KEY]';
+        } else if (provider === 'weatherapi') {
+          badge.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600';
+          badge.textContent = apiKey ? 'WEATHERAPI [AUTH]' : 'WEATHERAPI [NO KEY]';
+        } else {
+          badge.className = 'text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-600';
+          badge.textContent = apiKey ? 'OPEN-METEO [KEY]' : 'LIVE WMO';
+        }
+      }
+
+      if (footerStation) {
+        if (provider === 'openweathermap') {
+          footerStation.textContent = 'OpenWeatherMap Global Stations (200,000+ Weather Stations)';
+        } else if (provider === 'weatherapi') {
+          footerStation.textContent = 'WeatherAPI.com Doppler Radar & Station Telemetry Hub';
+        } else {
+          footerStation.textContent = 'Kolkata Regional Meteorological Center (IMD/Open-Meteo Gateway)';
+        }
+      }
+    }
+
+    function openApiModal() {
+      const provider = localStorage.getItem('weather_provider') || 'openmeteo';
+      const apiKey = localStorage.getItem('weather_api_key') || '';
+
+      const radio = document.querySelector(`input[name="telemetry-provider"][value="${provider}"]`);
+      if (radio) radio.checked = true;
+
+      const input = document.getElementById('weather-api-key-input');
+      if (input) input.value = apiKey;
+
+      const testResult = document.getElementById('api-test-result');
+      if (testResult) {
+        testResult.className = 'hidden';
+        testResult.innerHTML = '';
+      }
+
+      onProviderSelectChange();
+      document.getElementById('api-modal').classList.remove('hidden');
+      playBeep(700, 0.04);
+    }
+
+    function closeApiModal() {
+      document.getElementById('api-modal').classList.add('hidden');
+    }
+
+    function onProviderSelectChange() {
+      const selectedRadio = document.querySelector('input[name="telemetry-provider"]:checked');
+      const provider = selectedRadio ? selectedRadio.value : 'openmeteo';
+      const keyInput = document.getElementById('weather-api-key-input');
+      const statusPill = document.getElementById('api-key-status-pill');
+
+      // Update Radio cards visual borders
+      document.querySelectorAll('.provider-radio-card').forEach(card => {
+        const r = card.querySelector('input[type="radio"]');
+        if (r && r.checked) {
+          card.className = 'provider-radio-card p-3 rounded-xl border border-cyan-500/80 bg-cyan-950/30 cursor-pointer flex flex-col justify-between transition shadow-[0_0_12px_rgba(6,182,212,0.2)]';
+        } else {
+          card.className = 'provider-radio-card p-3 rounded-xl border border-slate-800 bg-slate-900/60 cursor-pointer flex flex-col justify-between transition hover:border-slate-700';
+        }
+      });
+
+      if (keyInput && statusPill) {
+        if (provider === 'openweathermap') {
+          keyInput.placeholder = 'Paste OpenWeatherMap 32-char API Key (e.g. 8fa37b82f1...)';
+          statusPill.textContent = 'REQUIRED FOR LIVE OPENWEATHERMAP';
+          statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/80 border border-amber-600 text-amber-300 font-bold';
+        } else if (provider === 'weatherapi') {
+          keyInput.placeholder = 'Paste WeatherAPI.com API Key (e.g. 2d9a5c81f...)';
+          statusPill.textContent = 'REQUIRED FOR LIVE WEATHERAPI';
+          statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/80 border border-amber-600 text-amber-300 font-bold';
+        } else {
+          keyInput.placeholder = 'Optional customer API key (Leave blank for Free ECMWF/NOAA Tier)';
+          statusPill.textContent = 'KEYLESS FREE TIER ACTIVE (NO KEY NEEDED)';
+          statusPill.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-600 text-emerald-300 font-bold';
+        }
+      }
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('weather-api-key-input');
+      const label = document.getElementById('key-visibility-label');
+      if (!input || !label) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        label.textContent = 'Hide';
+      } else {
+        input.type = 'password';
+        label.textContent = 'Show';
+      }
+    }
+
+    async function testApiConnection() {
+      const selectedRadio = document.querySelector('input[name="telemetry-provider"]:checked');
+      const provider = selectedRadio ? selectedRadio.value : 'openmeteo';
+      const keyInput = document.getElementById('weather-api-key-input');
+      const key = keyInput ? keyInput.value.trim() : '';
+      const testResult = document.getElementById('api-test-result');
+
+      if (!testResult) return;
+      testResult.className = 'p-3 rounded-xl font-mono text-xs border bg-slate-900 border-cyan-500/50 text-cyan-300 flex items-center gap-2';
+      testResult.innerHTML = `
+        <svg class="w-4 h-4 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Pinging ${provider} observation gateway for Kolkata (22.57°N, 88.36°E)...</span>
+      `;
+      testResult.classList.remove('hidden');
+
+      const startTime = performance.now();
+      try {
+        if (provider === 'openweathermap') {
+          if (!key) throw new Error("Please enter your 32-character OpenWeatherMap API key first.");
+          const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=22.5726&lon=88.3639&appid=${encodeURIComponent(key)}&units=metric`);
+          const elapsed = Math.round(performance.now() - startTime);
+          if (!res.ok) {
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(`OpenWeatherMap Error ${res.status}: ${errJson.message || res.statusText}`);
+          }
+          const data = await res.json();
+          testResult.className = 'p-3 rounded-xl font-mono text-xs border bg-emerald-950/80 border-emerald-500 text-emerald-300';
+          testResult.innerHTML = `
+            <div class="flex items-center gap-1.5 font-bold mb-1">
+              <span>✅</span> CONNECTION VERIFIED (${elapsed} ms)
+            </div>
+            <div class="text-[11px] text-emerald-200">
+              Station: ${data.name || 'Kolkata Metro'} • Temp: ${data.main?.temp}°C • Humidity: ${data.main?.humidity}% • Wind: ${(data.wind?.speed * 3.6).toFixed(1)} km/h
+            </div>
+          `;
+          playBeep(1100, 0.08);
+        } else if (provider === 'weatherapi') {
+          if (!key) throw new Error("Please enter your WeatherAPI.com token first.");
+          const res = await fetch(`https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(key)}&q=22.5726,88.3639`);
+          const elapsed = Math.round(performance.now() - startTime);
+          if (!res.ok) {
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(`WeatherAPI Error ${res.status}: ${errJson.error?.message || res.statusText}`);
+          }
+          const data = await res.json();
+          testResult.className = 'p-3 rounded-xl font-mono text-xs border bg-emerald-950/80 border-emerald-500 text-emerald-300';
+          testResult.innerHTML = `
+            <div class="flex items-center gap-1.5 font-bold mb-1">
+              <span>✅</span> DOPPLER RADAR ONLINE (${elapsed} ms)
+            </div>
+            <div class="text-[11px] text-emerald-200">
+              Station: ${data.location?.name} • Temp: ${data.current?.temp_c}°C • Wind: ${data.current?.wind_kph} km/h • Precip: ${data.current?.precip_mm} mm
+            </div>
+          `;
+          playBeep(1100, 0.08);
+        } else {
+          // Open-Meteo
+          let url = `https://api.open-meteo.com/v1/forecast?latitude=22.5726&longitude=88.3639&current=precipitation,wind_speed_10m,temperature_2m`;
+          if (key) url = `https://customer-api.open-meteo.com/v1/forecast?latitude=22.5726&longitude=88.3639&current=precipitation,wind_speed_10m,temperature_2m&apikey=${encodeURIComponent(key)}`;
+          const res = await fetch(url);
+          const elapsed = Math.round(performance.now() - startTime);
+          if (!res.ok) throw new Error(`Open-Meteo Error ${res.status}: ${res.statusText}`);
+          const data = await res.json();
+          const curr = data.current || {};
+          testResult.className = 'p-3 rounded-xl font-mono text-xs border bg-emerald-950/80 border-emerald-500 text-emerald-300';
+          testResult.innerHTML = `
+            <div class="flex items-center gap-1.5 font-bold mb-1">
+              <span>✅</span> WMO DOWNLINK CONFIRMED (${elapsed} ms)
+            </div>
+            <div class="text-[11px] text-emerald-200">
+              Provider: ECMWF / NOAA NWP • Temp: ${curr.temperature_2m}°C • Wind: ${curr.wind_speed_10m} km/h • Precip: ${curr.precipitation} mm
+            </div>
+          `;
+          playBeep(1100, 0.08);
+        }
+      } catch (err) {
+        testResult.className = 'p-3 rounded-xl font-mono text-xs border bg-rose-950/80 border-rose-500 text-rose-300';
+        testResult.innerHTML = `
+          <div class="flex items-center gap-1.5 font-bold mb-1">
+            <span>❌</span> DOWNLINK FAILED:
+          </div>
+          <div class="text-[11px] text-rose-200 font-mono">${err.message}</div>
+        `;
+        playBeep(320, 0.12);
+      }
+    }
+
+    function saveApiConfig() {
+      const selectedRadio = document.querySelector('input[name="telemetry-provider"]:checked');
+      const provider = selectedRadio ? selectedRadio.value : 'openmeteo';
+      const keyInput = document.getElementById('weather-api-key-input');
+      const key = keyInput ? keyInput.value.trim() : '';
+
+      localStorage.setItem('weather_provider', provider);
+      localStorage.setItem('weather_api_key', key);
+
+      updateProviderBadges();
+      closeApiModal();
+      playTacticalChime();
+    }
+
+    // ==============================================================
+    // EDGE IOT FIELD BEACON & WOKWI SIMULATOR CONTROLLER
+    // ==============================================================
+
+    let hardwareSirenEnabled = false;
+    let hardwareActiveReport = null;
+    let hardwareScreenMode = 'A'; // 'A' or 'B'
+    let hardwarePresetIndex = 0;
+
+    // Upgraded Wokwi Code snippets for copy-pasting
+    const WOKWI_SKETCH_SNIPPET = `/*
+ * Regional Disaster Response Agent - ESP32 Edge Siren Beacon
+ * Wokwi Hardware Simulation (sketch.ino)
+ */
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int PIN_LED_RED    = 18;
+const int PIN_LED_YELLOW = 19;
+const int PIN_LED_GREEN  = 23;
+const int PIN_BUZZER     = 25;
+const int PIN_BUTTON     = 32;
+
+struct AlertDirective {
+  String region;
+  String threatLevel;
+  String evacRoute;
+  float precipMm;
+  float windKmh;
+  int boats;
+  int sandbags;
+};
+
+AlertDirective currentAlert = {
+  "TAMLUK", "CRITICAL", "ROUTE 1 CLEAR", 24.5, 48.0, 25, 5000
+};
+
+const AlertDirective PRESETS[] = {
+  {"TAMLUK",     "CRITICAL", "ROUTE 1 CLEAR",   24.5, 48.0, 25, 5000},
+  {"DIGHA",      "CRITICAL", "INLAND ELEVATED", 28.5, 65.0, 35, 6500},
+  {"KOLKATA",    "MODERATE", "BYPASS FLYOVER",  10.5, 32.0, 10, 2000},
+  {"DARJEELING", "CRITICAL", "RIDGE CORRIDOR",  32.0, 42.0,  5, 4000},
+  {"KALYANI",    "LOW",      "ALL ROADS OPEN",   1.5, 14.0,  2,  500}
+};
+const int TOTAL_PRESETS = sizeof(PRESETS) / sizeof(PRESETS[0]);
+int currentPresetIdx = 0;
+
+unsigned long lastScreenFlip = 0;
+bool showingScreenA = true;
+unsigned long lastStrobe = 0;
+bool strobeState = false;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIN_LED_RED, OUTPUT);
+  pinMode(PIN_LED_YELLOW, OUTPUT);
+  pinMode(PIN_LED_GREEN, OUTPUT);
+  pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
+
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("DISASTER AGENT");
+  lcd.setCursor(0, 1);
+  lcd.print("EDGE BEACON v1.0");
+  delay(1200);
+  applyAlertOutputs();
+}
+
+void loop() {
+  if (Serial.available() > 0) {
+    String inputLine = Serial.readStringUntil('\\n');
+    inputLine.trim();
+    if (inputLine.length() > 0) handleSerialDirective(inputLine);
+  }
+
+  if (digitalRead(PIN_BUTTON) == LOW) {
+    delay(250);
+    currentPresetIdx = (currentPresetIdx + 1) % TOTAL_PRESETS;
+    currentAlert = PRESETS[currentPresetIdx];
+    applyAlertOutputs();
+    Serial.println("[LOCAL-OVERRIDE] Ingested: " + currentAlert.region);
+  }
+
+  if (millis() - lastScreenFlip > 3200) {
+    lastScreenFlip = millis();
+    showingScreenA = !showingScreenA;
+    renderLcdDisplay();
+  }
+
+  if (currentAlert.threatLevel == "CRITICAL") {
+    if (millis() - lastStrobe > 350) {
+      lastStrobe = millis();
+      strobeState = !strobeState;
+      digitalWrite(PIN_LED_RED, strobeState ? HIGH : LOW);
+      if (strobeState) tone(PIN_BUZZER, 1200, 120);
+      else noTone(PIN_BUZZER);
+    }
+  }
+}
+
+void applyAlertOutputs() {
+  digitalWrite(PIN_LED_RED, LOW);
+  digitalWrite(PIN_LED_YELLOW, LOW);
+  digitalWrite(PIN_LED_GREEN, LOW);
+  noTone(PIN_BUZZER);
+
+  if (currentAlert.threatLevel == "CRITICAL") {
+    digitalWrite(PIN_LED_RED, HIGH);
+    tone(PIN_BUZZER, 1800, 250);
+  } else if (currentAlert.threatLevel == "MODERATE") {
+    digitalWrite(PIN_LED_YELLOW, HIGH);
+    tone(PIN_BUZZER, 880, 80);
+  } else {
+    digitalWrite(PIN_LED_GREEN, HIGH);
+  }
+  renderLcdDisplay();
+}
+
+void renderLcdDisplay() {
+  lcd.clear();
+  if (showingScreenA) {
+    lcd.setCursor(0, 0);
+    String header = currentAlert.region;
+    if (currentAlert.threatLevel == "CRITICAL") header += " [CRIT!]";
+    else if (currentAlert.threatLevel == "MODERATE") header += " [WATCH]";
+    else header += " [NORMAL]";
+    lcd.print(header.substring(0, 16));
+
+    lcd.setCursor(0, 1);
+    String routeLine = "EVAC:" + currentAlert.evacRoute;
+    lcd.print(routeLine.substring(0, 16));
+  } else {
+    lcd.setCursor(0, 0);
+    char l1[17];
+    snprintf(l1, sizeof(l1), "R:%.1fmm W:%.0fk", currentAlert.precipMm, currentAlert.windKmh);
+    lcd.print(l1);
+
+    lcd.setCursor(0, 1);
+    char l2[17];
+    snprintf(l2, sizeof(l2), "BT:%d SAND:%d", currentAlert.boats, currentAlert.sandbags);
+    lcd.print(l2);
+  }
+}
+
+void handleSerialDirective(String cmd) {
+  cmd.toUpperCase();
+  if (cmd.startsWith("ALERT:")) {
+    int p1 = cmd.indexOf(':', 6);
+    int p2 = cmd.indexOf(':', p1 + 1);
+    if (p1 != -1) {
+      currentAlert.region = cmd.substring(6, p1);
+      if (p2 != -1) {
+        currentAlert.threatLevel = cmd.substring(p1 + 1, p2);
+        currentAlert.evacRoute = cmd.substring(p2 + 1);
+      } else {
+        currentAlert.threatLevel = cmd.substring(p1 + 1);
+        currentAlert.evacRoute = "ROUTE CLEAR";
+      }
+      applyAlertOutputs();
+      Serial.println("[AI-DIRECTIVE-RECEIVED] Updated " + currentAlert.region);
+    }
+  } else if (cmd == "CRITICAL" || cmd == "MODERATE" || cmd == "LOW") {
+    currentAlert.threatLevel = cmd;
+    applyAlertOutputs();
+    Serial.println("[THREAT-OVERRIDE] Set to " + cmd);
+  }
+}`;
+
+    const WOKWI_DIAGRAM_SNIPPET = `{
+  "version": 1,
+  "author": "Regional Disaster Response Agent",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp", "top": 80, "left": 100, "attrs": {} },
+    { "type": "wokwi-lcd1602", "id": "lcd", "top": -120, "left": 80, "attrs": { "pins": "i2c" } },
+    { "type": "wokwi-led", "id": "led-red", "top": 20, "left": 300, "attrs": { "color": "red", "label": "CRITICAL" } },
+    { "type": "wokwi-led", "id": "led-yellow", "top": 70, "left": 300, "attrs": { "color": "yellow", "label": "WATCH" } },
+    { "type": "wokwi-led", "id": "led-green", "top": 120, "left": 300, "attrs": { "color": "green", "label": "CLEAR" } },
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 180, "left": 300, "attrs": { "hasAudio": "1" } },
+    { "type": "wokwi-pushbutton", "id": "btn", "top": 250, "left": 300, "attrs": { "color": "blue", "label": "CYCLE" } }
+  ],
+  "connections": [
+    [ "esp:GND.1", "lcd:GND", "black", [ "v0" ] ],
+    [ "esp:VIN", "lcd:VCC", "red", [ "v0" ] ],
+    [ "esp:21", "lcd:SDA", "green", [ "v0" ] ],
+    [ "esp:22", "lcd:SCL", "green", [ "v0" ] ],
+    [ "esp:GND.1", "led-red:C", "black", [ "v0" ] ],
+    [ "esp:18", "led-red:A", "red", [ "v0" ] ],
+    [ "esp:GND.1", "led-yellow:C", "black", [ "v0" ] ],
+    [ "esp:19", "led-yellow:A", "gold", [ "v0" ] ],
+    [ "esp:GND.1", "led-green:C", "black", [ "v0" ] ],
+    [ "esp:23", "led-green:A", "green", [ "v0" ] ],
+    [ "esp:GND.2", "buzzer:1", "black", [ "v0" ] ],
+    [ "esp:25", "buzzer:2", "purple", [ "v0" ] ],
+    [ "esp:GND.2", "btn:1.l", "black", [ "v0" ] ],
+    [ "esp:32", "btn:2.l", "blue", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}`;
+
+    // Render Live Virtual Hardware Beacon
+    function updateEdgeHardwareBeacon(report) {
+      if (!report) return;
+      hardwareActiveReport = report;
+
+      const isCritical = report.threat_assessment.startsWith("CRITICAL");
+      const isModerate = report.threat_assessment.startsWith("MODERATE");
+
+      const lcdScreen = document.getElementById('hw-lcd-screen');
+      const ledRed = document.getElementById('hw-led-red');
+      const ledRedLabel = document.getElementById('hw-led-red-label');
+      const ledYellow = document.getElementById('hw-led-yellow');
+      const ledYellowLabel = document.getElementById('hw-led-yellow-label');
+      const piezoLabel = document.getElementById('hw-buzzer-label');
+
+      // Update Backlight styling
+      if (lcdScreen) {
+        if (isCritical) {
+          lcdScreen.className = 'mt-2 py-4 px-3 sm:px-4 rounded-lg bg-[#27080a] border border-rose-700/80 shadow-[inset_0_0_25px_rgba(244,63,94,0.35)] font-mono transition-colors duration-500';
+        } else if (isModerate) {
+          lcdScreen.className = 'mt-2 py-4 px-3 sm:px-4 rounded-lg bg-[#281b05] border border-amber-700/80 shadow-[inset_0_0_25px_rgba(245,158,11,0.35)] font-mono transition-colors duration-500';
+        } else {
+          lcdScreen.className = 'mt-2 py-4 px-3 sm:px-4 rounded-lg bg-[#062410] border border-emerald-800/60 shadow-[inset_0_0_25px_rgba(16,185,129,0.25)] font-mono transition-colors duration-500';
+        }
+      }
+
+      // Update LEDs
+      if (ledRed && ledYellow) {
+        if (isCritical) {
+          ledRed.className = 'w-4 h-4 rounded-full bg-rose-500 shadow-[0_0_15px_#f43f5e] animate-ping mb-1.5 transition-all';
+          if (ledRedLabel) ledRedLabel.textContent = 'STROBE ON';
+          ledYellow.className = 'w-4 h-4 rounded-full bg-slate-800 mb-1.5 transition-all';
+          if (ledYellowLabel) ledYellowLabel.textContent = 'OFF';
+          if (piezoLabel) piezoLabel.textContent = hardwareSirenEnabled ? 'ACTIVE SIREN' : 'ARMED (MUTED)';
+        } else if (isModerate) {
+          ledRed.className = 'w-4 h-4 rounded-full bg-slate-800 mb-1.5 transition-all';
+          if (ledRedLabel) ledRedLabel.textContent = 'OFF';
+          ledYellow.className = 'w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_12px_#fbbf24] mb-1.5 transition-all';
+          if (ledYellowLabel) ledYellowLabel.textContent = 'WATCH ON';
+          if (piezoLabel) piezoLabel.textContent = 'ADVISORY CHIRP';
+        } else {
+          ledRed.className = 'w-4 h-4 rounded-full bg-slate-800 mb-1.5 transition-all';
+          if (ledRedLabel) ledRedLabel.textContent = 'OFF';
+          ledYellow.className = 'w-4 h-4 rounded-full bg-slate-800 mb-1.5 transition-all';
+          if (ledYellowLabel) ledYellowLabel.textContent = 'OFF';
+          if (piezoLabel) piezoLabel.textContent = 'STANDBY';
+        }
+      }
+
+      renderHardwareLcdScreen();
+
+      // Append to UART Serial Log
+      appendSerialLog(`[RX-AGENT] DIRECTIVE: ${report.region.toUpperCase()} -> Threat: ${isCritical ? 'CRITICAL' : (isModerate ? 'MODERATE' : 'LOW')}`);
+      appendSerialLog(`[GPIO-18] RED SIREN: ${isCritical ? 'STROBE HIGH' : 'LOW'} | [GPIO-19] YELLOW: ${isModerate ? 'HIGH' : 'LOW'}`);
+      appendSerialLog(`[I2C-0x27] Redrawn: Line 1="${report.region.toUpperCase()} [${isCritical ? 'CRIT' : 'OK'}]" Line 2="${(report.evacuation_routes[0] || 'CLEAR').substring(0, 16)}"`);
+
+      // Audible Piezo Beep if Siren Enabled
+      if (hardwareSirenEnabled && isCritical) {
+        triggerHardwareSirenSound();
+      }
+    }
+
+    // Render LCD Line 1 & Line 2
+    function renderHardwareLcdScreen() {
+      if (!hardwareActiveReport) return;
+      const r = hardwareActiveReport;
+      const isCritical = r.threat_assessment.startsWith("CRITICAL");
+      const isModerate = r.threat_assessment.startsWith("MODERATE");
+
+      const line1 = document.getElementById('hw-lcd-line1');
+      const line2 = document.getElementById('hw-lcd-line2');
+      const modeTag = document.getElementById('hw-lcd-mode-tag');
+
+      const textClass = isCritical 
+        ? 'text-base sm:text-lg md:text-xl font-bold tracking-[0.16em] text-rose-300 drop-shadow-[0_0_8px_rgba(244,63,94,0.8)] select-none truncate'
+        : (isModerate 
+            ? 'text-base sm:text-lg md:text-xl font-bold tracking-[0.16em] text-amber-300 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)] select-none truncate'
+            : 'text-base sm:text-lg md:text-xl font-bold tracking-[0.16em] text-[#34d399] drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] select-none truncate');
+
+      if (line1) line1.className = textClass;
+      if (line2) line2.className = textClass + ' mt-1';
+
+      if (hardwareScreenMode === 'A') {
+        if (modeTag) modeTag.textContent = 'SCREEN A: EVACUATION PROTOCOL';
+        const sev = isCritical ? '[CRIT!]' : (isModerate ? '[WATCH]' : '[NORMAL]');
+        if (line1) line1.textContent = `${r.region.toUpperCase()} ${sev}`.substring(0, 16);
+        const routeText = r.evacuation_routes && r.evacuation_routes[0] ? r.evacuation_routes[0] : 'ROUTE CLEAR';
+        if (line2) line2.textContent = `EVAC:${routeText.toUpperCase()}`.substring(0, 16);
+      } else {
+        if (modeTag) modeTag.textContent = 'SCREEN B: METEO & LOGISTICS';
+        const precip = r.live_telemetry ? r.live_telemetry.precipitation_mm : 0;
+        const wind = r.live_telemetry ? r.live_telemetry.wind_speed_kmh : 0;
+        if (line1) line1.textContent = `R:${precip}mm W:${wind}k`.substring(0, 16);
+        const boats = r.resource_allocation ? r.resource_allocation.rescue_boats : 0;
+        const sand = r.resource_allocation ? r.resource_allocation.sandbag_units : 0;
+        if (line2) line2.textContent = `BT:${boats} SAND:${sand}`.substring(0, 16);
+      }
+    }
+
+    // Toggle Screen A / B
+    function toggleHardwareScreenFlip() {
+      hardwareScreenMode = (hardwareScreenMode === 'A') ? 'B' : 'A';
+      renderHardwareLcdScreen();
+      playBeep(900, 0.03);
+    }
+
+    // Toggle Hardware Siren Audio
+    function toggleHardwareSiren() {
+      hardwareSirenEnabled = !hardwareSirenEnabled;
+      const statusEl = document.getElementById('hw-siren-status');
+      const iconEl = document.getElementById('hw-siren-icon');
+
+      if (hardwareSirenEnabled) {
+        statusEl.textContent = 'ON (ARMED)';
+        statusEl.className = 'text-[10px] font-bold text-rose-400 animate-pulse';
+        iconEl.textContent = '🔊';
+        triggerHardwareSirenSound();
+      } else {
+        statusEl.textContent = 'OFF';
+        statusEl.className = 'text-[10px] font-bold text-slate-500';
+        iconEl.textContent = '🔇';
+        playBeep(450, 0.05);
+      }
+    }
+
+    // Web Audio Piezo Alarm Siren
+    function triggerHardwareSirenSound() {
+      if (!audioCtx) initAudio();
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square'; // 8-bit piezo buzzer tone
+        
+        // Siren warble: 1200Hz to 1600Hz
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.linearRampToValueAtTime(1650, now + 0.15);
+        osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } catch (e) {
+        console.warn("Hardware siren audio failed:", e);
+      }
+    }
+
+    // Simulate Hardware Pushbutton on GPIO 32
+    function simulateHardwareButtonPress() {
+      const presets = ['tamluk', 'digha', 'kolkata', 'darjeeling', 'kalyani'];
+      hardwarePresetIndex = (hardwarePresetIndex + 1) % presets.length;
+      const chosen = presets[hardwarePresetIndex];
+
+      appendSerialLog(`[GPIO-32] LOW Interrupt Triggered (Physical Pushbutton Press)`);
+      appendSerialLog(`[BEACON-CYCLE] Switching local preset to: ${chosen.toUpperCase()}`);
+
+      quickSelectRegion(chosen);
+      playBeep(1300, 0.05);
+    }
+
+    // Append to virtual UART serial console
+    function appendSerialLog(text) {
+      const logContainer = document.getElementById('hw-serial-log');
+      if (!logContainer) return;
+      const timeStr = new Date().toTimeString().split(' ')[0];
+      const div = document.createElement('div');
+      div.className = text.includes('CRITICAL') ? 'text-rose-400' : (text.includes('GPIO') ? 'text-cyan-300' : 'text-emerald-400');
+      div.textContent = `[${timeStr}] ${text}`;
+      logContainer.appendChild(div);
+
+      // Keep max 35 lines
+      while (logContainer.children.length > 35) {
+        logContainer.removeChild(logContainer.children[1]);
+      }
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function clearSerialConsole() {
+      const logContainer = document.getElementById('hw-serial-log');
+      if (logContainer) {
+        logContainer.innerHTML = '<div class="text-slate-500">// Serial console buffer cleared.</div>';
+      }
+    }
+
+    // Send custom serial command from text input
+    function sendSerialCommand() {
+      const input = document.getElementById('hw-serial-input');
+      if (!input || !input.value.trim()) return;
+      const cmd = input.value.trim();
+      input.value = '';
+
+      appendSerialLog(`[UART-TX] ${cmd}`);
+      
+      const parts = cmd.toUpperCase().split(':');
+      if (cmd.toUpperCase().startsWith('ALERT:') && parts.length >= 3) {
+        const regionName = parts[1].toLowerCase();
+        if (REGIONS_DATABASE[regionName]) {
+          quickSelectRegion(regionName);
+        } else {
+          appendSerialLog(`[WARN] Region "${parts[1]}" not recognized in West Bengal database.`);
+        }
+      } else if (cmd.toUpperCase() === 'CRITICAL' || cmd.toUpperCase() === 'MODERATE' || cmd.toUpperCase() === 'LOW') {
+        selectThreatFilter(cmd.toLowerCase());
+      } else if (cmd.toUpperCase() === 'CLEAR') {
+        clearSerialConsole();
+      } else {
+        appendSerialLog(`[COMMAND-ACK] Echo: "${cmd}" - Try format: ALERT:KOLKATA:CRITICAL`);
+      }
+    }
+
+    // Wokwi Modal Handlers
+    function openWokwiModal() {
+      const sketchPre = document.getElementById('wokwi-code-sketch');
+      const diagramPre = document.getElementById('wokwi-code-diagram');
+      if (sketchPre) sketchPre.textContent = WOKWI_SKETCH_SNIPPET;
+      if (diagramPre) diagramPre.textContent = WOKWI_DIAGRAM_SNIPPET;
+
+      switchWokwiTab('sketch');
+      document.getElementById('wokwi-modal').classList.remove('hidden');
+      playBeep(700, 0.04);
+    }
+
+    function closeWokwiModal() {
+      document.getElementById('wokwi-modal').classList.add('hidden');
+    }
+
+    function switchWokwiTab(tabName) {
+      const tabs = ['sketch', 'diagram', 'libraries', 'guide'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`wokwi-tab-${t}`);
+        const content = document.getElementById(`wokwi-content-${t}`);
+        if (t === tabName) {
+          if (btn) btn.className = 'px-3.5 py-2 rounded-t-lg font-bold border-t border-l border-r border-cyan-500/80 bg-slate-950 text-cyan-300 transition';
+          if (content) content.classList.remove('hidden');
+        } else {
+          if (btn) btn.className = 'px-3.5 py-2 rounded-t-lg font-bold border-t border-l border-r border-transparent text-slate-400 hover:text-slate-200 transition';
+          if (content) content.classList.add('hidden');
+        }
+      });
+    }
+
+    function copyWokwiSnippet(type) {
+      let text = '';
+      let labelId = '';
+      if (type === 'sketch') {
+        text = WOKWI_SKETCH_SNIPPET;
+        labelId = 'copy-sketch-label';
+      } else if (type === 'diagram') {
+        text = WOKWI_DIAGRAM_SNIPPET;
+        labelId = 'copy-diagram-label';
+      } else {
+        text = 'LiquidCrystal I2C';
+        labelId = 'copy-libraries-label';
+      }
+
+      navigator.clipboard.writeText(text).then(() => {
+        const label = document.getElementById(labelId);
+        if (label) {
+          const original = label.textContent;
+          label.textContent = 'Copied to Clipboard!';
+          playBeep(1100, 0.06);
+          setTimeout(() => { label.textContent = original; }, 2000);
+        }
+      });
+    }
+
+    // Auto-rotate virtual hardware LCD screen every 3.5 seconds
+    setInterval(() => {
+      if (hardwareActiveReport) {
+        hardwareScreenMode = (hardwareScreenMode === 'A') ? 'B' : 'A';
+        renderHardwareLcdScreen();
+      }
+    }, 3500);
+
+    // Close modals on Escape
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeJsonModal();
+      if (e.key === 'Escape') {
+        closeJsonModal();
+        closeApiModal();
+        closeWokwiModal();
+      }
     });
 
     // Boot on page load
     window.addEventListener('DOMContentLoaded', () => {
       startClock();
+      updateProviderBadges();
       // Initial render with default Tamluk scenario matching backend
       const initialReport = computeDisasterReport('tamluk', 18.5, 45.0);
       renderDashboard(initialReport);
+      // Initialize Statewide Threat Matrix
+      selectThreatFilter('critical');
     });
   </script>
 </body>
