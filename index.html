@@ -302,11 +302,12 @@
               Telemetry / Threat Mode
             </label>
             <div class="relative">
-              <select id="simulation-scenario" onchange="onScenarioChange()" class="w-full bg-slate-950/90 text-slate-200 font-mono text-sm border border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition appearance-none cursor-pointer">
-                <option value="live">Live Open-Meteo Telemetry (Auto)</option>
-                <option value="critical">Severe Cyclone / Inundation (CRITICAL)</option>
-                <option value="moderate">Monsoon Drainage Surge (MODERATE)</option>
-                <option value="low">Standard Monitoring (LOW)</option>
+              <select id="simulation-scenario" onchange="onScenarioChange()" class="w-full bg-slate-950/90 text-slate-200 font-mono text-sm border border-slate-700 rounded-xl px-4 py-2.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition appearance-none cursor-pointer">
+                <option value="auto" selected>⚡ Regional Hazard Profile (Auto by City Zone)</option>
+                <option value="critical">🔴 Severe Cyclone / Storm Surge Drill (CRITICAL)</option>
+                <option value="moderate">🟡 Monsoon Drainage Congestion (MODERATE)</option>
+                <option value="low">🟢 Standard Baseline Monitoring (LOW)</option>
+                <option value="live">📡 Live Open-Meteo Telemetry (Current Real-Time Satellite)</option>
               </select>
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2247,22 +2248,55 @@
 
       if (contextNote && contextText) {
         contextNote.classList.remove('hidden');
-        if (activeScenario === 'live') {
+        if (activeScenario === 'auto') {
+          if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
+            const zoneTitle = (geoType === 'hilly') ? 'Himalayan Ridge & Landslide Zone' : (geoType === 'sundarbans' ? 'Sundarbans Estuary Tidal Zone' : 'Bay of Bengal Coastal Front');
+            if (contextTag) {
+              contextTag.textContent = "CRITICAL HAZARD ZONE";
+              contextTag.className = "px-1.5 py-0.5 rounded bg-rose-950 border border-rose-600 text-[10px] text-rose-300 font-bold";
+            }
+            contextText.innerHTML = `<strong>Critical Zone Protocol Active:</strong> <strong>${report.region}</strong> is in West Bengal's <strong class="text-rose-400">High-Risk Hazard Zone</strong> (${zoneTitle}). Emergency response flotillas (35 boats) and 6,500 sandbags dispatched for storm surge and tidal breach defense. <button onclick="quickSelectRegion('${currentRegionKey}', 'live')" class="underline text-cyan-300 font-bold ml-1 hover:text-cyan-200 cursor-pointer">Compare with Live Real-Time Satellite →</button>`;
+          } else if (isModerate) {
+            if (contextTag) {
+              contextTag.textContent = "MODERATE ZONE HAZARD";
+              contextTag.className = "px-1.5 py-0.5 rounded bg-amber-950 border border-amber-600 text-[10px] text-amber-300 font-bold";
+            }
+            contextText.innerHTML = `<strong>Moderate Zone Protocol Active:</strong> <strong>${report.region}</strong> is monitored for drainage congestion and localized inundation. Flotillas staged.`;
+          } else {
+            if (contextTag) {
+              contextTag.textContent = "LOW RISK ZONE";
+              contextTag.className = "px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-600 text-[10px] text-emerald-300 font-bold";
+            }
+            contextText.innerHTML = `<strong>Standard Monitoring Active:</strong> <strong>${report.region}</strong> is in a low-vulnerability inland basin. Normal operations active.`;
+          }
+        } else if (activeScenario === 'live') {
           if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
             const zoneTitle = (geoType === 'hilly') ? 'Himalayan Ridge & Landslide Zone' : (geoType === 'sundarbans' ? 'Sundarbans Estuary Tidal Zone' : 'Bay of Bengal Coastal Surge Front');
             if (!isCritical) {
-              if (contextTag) contextTag.textContent = "CALM REAL-TIME WEATHER";
-              contextText.innerHTML = `<strong>Why is threat currently ${isModerate ? 'MODERATE' : 'LOW'}?</strong> Real-time Doppler sensors report peaceful weather right now in ${report.region} (Rain: ${report.live_telemetry.precipitation_mm.toFixed(1)} mm, Wind: ${report.live_telemetry.wind_speed_kmh.toFixed(1)} km/h). However, <strong>${report.region}</strong> is topographically classified in the <strong class="text-rose-400">Critical Zone</strong> (${zoneTitle}) during cyclones. <button onclick="quickSelectRegion('${currentRegionKey}', 'critical')" class="underline text-cyan-300 font-bold ml-1 hover:text-cyan-200 cursor-pointer">Simulate Critical Cyclone Drill →</button>`;
+              if (contextTag) {
+                contextTag.textContent = "CALM REAL-TIME WEATHER";
+                contextTag.className = "px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-cyan-300 font-semibold border border-slate-700";
+              }
+              contextText.innerHTML = `<strong>Real-Time Weather is Calm:</strong> Satellite sensors report peaceful weather right now in ${report.region} (Rain: ${report.live_telemetry.precipitation_mm.toFixed(1)} mm, Wind: ${report.live_telemetry.wind_speed_kmh.toFixed(1)} km/h). However, <strong>${report.region}</strong> is geographically classified in the <strong class="text-rose-400">Critical Zone</strong> (${zoneTitle}). <button onclick="quickSelectRegion('${currentRegionKey}', 'auto')" class="underline text-cyan-300 font-bold ml-1 hover:text-cyan-200 cursor-pointer">Switch to Regional Crisis Protocol →</button>`;
             } else {
-              if (contextTag) contextTag.textContent = "CRITICAL STORM SURGE ALERT";
+              if (contextTag) {
+                contextTag.textContent = "CRITICAL STORM SURGE ALERT";
+                contextTag.className = "px-1.5 py-0.5 rounded bg-rose-950 border border-rose-600 text-[10px] text-rose-300 font-bold";
+              }
               contextText.innerHTML = `<strong>Critical Telemetry Warning:</strong> Active high-intensity weather detected in ${report.region} (${zoneTitle}). Flood barriers, rescue boats, and high-ground shelters are fully activated.`;
             }
           } else {
-            if (contextTag) contextTag.textContent = "LIVE METEO FEED";
+            if (contextTag) {
+              contextTag.textContent = "LIVE METEO FEED";
+              contextTag.className = "px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-cyan-300 font-semibold border border-slate-700";
+            }
             contextText.innerHTML = `Dynamic threat index generated live from Open-Meteo station telemetry (Precip: ${report.live_telemetry.precipitation_mm.toFixed(1)} mm, Wind: ${report.live_telemetry.wind_speed_kmh.toFixed(1)} km/h). Conditions are currently within safe thresholds.`;
           }
         } else {
-          if (contextTag) contextTag.textContent = "SYNTHETIC DRILL PROTOCOL";
+          if (contextTag) {
+            contextTag.textContent = "SYNTHETIC DRILL PROTOCOL";
+            contextTag.className = "px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-cyan-300 font-semibold border border-slate-700";
+          }
           contextText.innerHTML = `Synthetic disaster drill active for <strong>${report.region}</strong> (${activeScenario.toUpperCase()} MODE). Emergency routes, rescue flotillas, and edge beacons are configured for this drill scenario. <button onclick="quickSelectRegion('${currentRegionKey}', 'live')" class="underline text-cyan-300 font-bold ml-1 hover:text-cyan-200 cursor-pointer">Check Live Real-Time Weather →</button>`;
         }
       }
@@ -2459,6 +2493,7 @@
 
     function onRegionChange() {
       playBeep(600, 0.03);
+      executeSimulation();
     }
 
     // Run AI Simulation Orchestrator
@@ -2511,15 +2546,15 @@
       // Determine Telemetry inputs based on scenario
       let precip, wind;
       if (scenario === 'critical') {
-        precip = 24.5;
-        wind = 48.0;
+        precip = (["coastal", "sundarbans", "hilly"].includes(regionData.type)) ? 28.5 : 24.5;
+        wind = (["coastal", "sundarbans"].includes(regionData.type)) ? 58.0 : 48.0;
       } else if (scenario === 'moderate') {
-        precip = 9.8;
+        precip = 10.5;
         wind = 29.5;
       } else if (scenario === 'low') {
         precip = 0.8;
         wind = 12.0;
-      } else {
+      } else if (scenario === 'live') {
         // 'live' mode: Attempt live weather fetch, with fallback to default
         try {
           const live = await fetchWeatherTelemetry(regionData.lat, regionData.lon, regionData.defaultPrecip, regionData.defaultWind);
@@ -2529,6 +2564,19 @@
           console.warn("Live weather fallback:", err);
           precip = regionData.defaultPrecip || 18.5;
           wind = regionData.defaultWind || 45.0;
+        }
+      } else {
+        // 'auto' mode (default): Regional Hazard Profile based on inherent zone vulnerability
+        const geoType = regionData.type || "plain";
+        if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
+          precip = regionData.defaultPrecip || ((geoType === 'hilly') ? 28.0 : 24.5);
+          wind = regionData.defaultWind || ((geoType === 'hilly') ? 44.0 : 52.0);
+        } else if (["urban", "riverine", "industrial"].includes(geoType)) {
+          precip = regionData.defaultPrecip || 16.5;
+          wind = regionData.defaultWind || 36.0;
+        } else {
+          precip = regionData.defaultPrecip || 2.5;
+          wind = regionData.defaultWind || 14.0;
         }
       }
 
@@ -2591,7 +2639,7 @@
     let currentThreatFilter = 'critical';
 
     // Helper: Compute specific threat details for any municipality
-    function getPlaceThreatDetails(key, region, scenario = 'live') {
+    function getPlaceThreatDetails(key, region, scenario = 'auto') {
       const geoType = region.type || "plain";
       let precip, wind, category, threatText, hazardScore, riskIcon, riskLabel;
 
@@ -2635,9 +2683,9 @@
         category = "low";
         hazardScore = 15;
       } else {
-        // Live / Regional Baseline
+        // Auto / Regional Baseline
         if (["coastal", "sundarbans", "hilly"].includes(geoType)) {
-          precip = (geoType === "hilly") ? 32.0 : 22.0;
+          precip = (geoType === "hilly") ? 32.0 : 24.5;
           wind = (geoType === "hilly") ? 42.0 : 48.0;
           category = "critical";
           hazardScore = 94;
@@ -2707,7 +2755,7 @@
     function computeStatewideThreatDistribution(scenario = null) {
       if (!scenario) {
         const scenarioSelect = document.getElementById('simulation-scenario');
-        scenario = scenarioSelect ? scenarioSelect.value : 'live';
+        scenario = scenarioSelect ? scenarioSelect.value : 'auto';
       }
 
       const dist = {
@@ -2990,14 +3038,15 @@
     // Dropdown Scenario Change Handler
     function onScenarioChange() {
       const scenarioSelect = document.getElementById('simulation-scenario');
-      const scenario = scenarioSelect ? scenarioSelect.value : 'live';
+      const scenario = scenarioSelect ? scenarioSelect.value : 'auto';
       const label = document.getElementById('matrix-active-mode-label');
 
       if (label) {
         if (scenario === 'critical') label.textContent = 'CRITICAL SURGE PROTOCOL';
         else if (scenario === 'moderate') label.textContent = 'MONSOON ADVISORY WATCH';
         else if (scenario === 'low') label.textContent = 'LOW HAZARD NORMAL';
-        else label.textContent = 'LIVE METEO MATRIX';
+        else if (scenario === 'live') label.textContent = 'LIVE SATELLITE MATRIX';
+        else label.textContent = 'REGIONAL HAZARD MATRIX';
       }
 
       // If user selected critical, moderate, or low from the dropdown, switch to that category view
@@ -3006,6 +3055,8 @@
       } else {
         renderThreatMatrixCards();
       }
+
+      executeSimulation();
     }
 
     // Scroll directly to Statewide Matrix with current city threat pre-selected

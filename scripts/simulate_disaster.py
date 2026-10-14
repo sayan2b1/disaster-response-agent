@@ -193,11 +193,31 @@ def run_simulation(region_key, provider="openmeteo", api_key=None, scenario="liv
             "mode": "Simulation Stress-Test (Standard Monitoring Baseline)",
             "provider": "Agentic Hydraulic Disaster Model"
         }
-    else:
+    elif scenario == "live":
         # Live satellite / station feed from reliable API provider
         weather = fetch_live_weather(region_info["lat"], region_info["lon"], provider=provider, api_key=api_key)
         precip = weather.get("precipitation_mm", 0.0)
         wind = weather.get("wind_speed_kmh", 0.0)
+    else:
+        # Default 'auto': Regional Hazard Profile based on inherent zone vulnerability
+        if geo_type in ["coastal", "sundarbans", "hilly"]:
+            precip = 28.0 if geo_type == "hilly" else 24.5
+            wind = 44.0 if geo_type == "hilly" else 52.0
+            mode_desc = "Regional Hazard Profile (Severe Storm Surge / Tidal Breach)"
+        elif geo_type in ["urban", "riverine", "industrial"]:
+            precip = 16.5
+            wind = 36.0
+            mode_desc = "Regional Hazard Profile (Drainage Congestion & Embankment Siltation)"
+        else:
+            precip = 2.5
+            wind = 14.0
+            mode_desc = "Regional Hazard Profile (Inland Low Hazard Baseline)"
+        weather = {
+            "precipitation_mm": precip,
+            "wind_speed_kmh": wind,
+            "mode": mode_desc,
+            "provider": "Topographical Vulnerability Agent"
+        }
 
     if precip > 15.0 or wind > 40.0:
         if geo_type == "hilly":
@@ -345,7 +365,7 @@ if __name__ == "__main__":
     parser.add_argument("--region", default="tamluk", help="Municipality name (e.g., tamluk, kalyani, haldia, kolkata)")
     parser.add_argument("--provider", default=os.getenv("WEATHER_PROVIDER", "openmeteo"), choices=["openmeteo", "openweathermap", "weatherapi"], help="Weather data provider (openmeteo, openweathermap, weatherapi)")
     parser.add_argument("--api-key", default=os.getenv("WEATHER_API_KEY"), help="API Token for authenticated weather source")
-    parser.add_argument("--scenario", choices=["live", "critical", "moderate", "low"], default="live", help="Simulation telemetry scenario")
+    parser.add_argument("--scenario", choices=["auto", "live", "critical", "moderate", "low"], default="auto", help="Simulation telemetry scenario (auto by zone, live satellite, or stress drills)")
     parser.add_argument("--overview", action="store_true", help="Print statewide West Bengal threat matrix across all cities")
     parser.add_argument("--threat", choices=["critical", "moderate", "low", "all"], help="Filter places by threat category (critical, moderate, low)")
     args = parser.parse_args()
